@@ -50,8 +50,8 @@ export const constantRoutes = [
     children: [{
       path: 'dashboard',
       name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: {title: '首页', icon: 'dashboard'}
+      component: () => import('@/views/main/dashboard/index'),
+      meta: { title: '首页', icon: 'dashboard' }
     }]
   },
   {
@@ -61,9 +61,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/store-management/index'),
+        component: () => import('@/views/main/store-management/index'),
         name: 'Stores',
-        meta: {title: '商户管理', icon: 'stores', affix: true}
+        meta: { title: '商户管理', icon: 'stores', affix: true }
       }
     ]
   },
@@ -74,9 +74,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/factory/index'),
+        component: () => import('@/views/main/factory/index'),
         name: 'Factory',
-        meta: {title: '厂商管理', icon: 'factory', affix: true}
+        meta: { title: '厂商管理', icon: 'factory', affix: true }
       }
     ]
   },
@@ -87,9 +87,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/product/index'),
+        component: () => import('@/views/main/product/index'),
         name: 'Product',
-        meta: {title: '产品管理', icon: 'product', affix: true}
+        meta: { title: '产品管理', icon: 'product', affix: true }
       }
     ]
   },
@@ -100,9 +100,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/device/index'),
+        component: () => import('@/views/main/device/index'),
         name: 'Device',
-        meta: {title: '设备管理', icon: 'device', affix: true}
+        meta: { title: '设备管理', icon: 'device', affix: true }
       }
     ]
   },
@@ -113,9 +113,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/package/index'),
+        component: () => import('@/views/main/package/index'),
         name: 'Package',
-        meta: {title: '升级包管理', icon: 'package', affix: true}
+        meta: { title: '升级包管理', icon: 'package', affix: true }
       }
     ]
   },
@@ -126,9 +126,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/ota/index'),
+        component: () => import('@/views/main/ota/index'),
         name: 'Ota',
-        meta: {title: 'ota任务管理', icon: 'ota', affix: true}
+        meta: { title: 'ota任务管理', icon: 'ota', affix: true }
       }
     ]
   },
@@ -139,9 +139,9 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/user/index'),
+        component: () => import('@/views/main/user/index'),
         name: 'User',
-        meta: {title: '用户管理', icon: 'user', affix: true}
+        meta: { title: '用户管理', icon: 'user', affix: true }
       }
     ]
   },
@@ -252,13 +252,13 @@ export const constantRoutes = [
   // },
 
   // 404 page must be placed at the end !!!
-  {path: '*', redirect: '/404', hidden: true}
+  { path: '*', redirect: '/404', hidden: true }
 ]
 
 const createRouter = () => new Router({
   mode: 'hash',
   // mode: 'history', // require service support
-  scrollBehavior: () => ({y: 0}),
+  scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })
 
