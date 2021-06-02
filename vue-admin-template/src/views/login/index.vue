@@ -45,9 +45,6 @@
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;"
                  @click.native.prevent="handleLogin">登录
       </el-button>
-<!--      <el-button type="text" size="small" style="width:20%;margin-bottom:30px;"-->
-<!--                 @click.native.prevent="handleRegister">注册-->
-<!--      </el-button>-->
 
     </el-form>
     <el-dialog
@@ -84,7 +81,7 @@ export default {
   name: 'Login',
   data() {
     const validatePhone = (rule, value, callback) => {
-      const phone = /^1[3456789]{1}\d{9}$/
+      const phone = /^1[3456789]\d{9}$/
       if (!value) {
         callback(new Error('请输入手机号'))
       } else if (!phone.test(value)) {

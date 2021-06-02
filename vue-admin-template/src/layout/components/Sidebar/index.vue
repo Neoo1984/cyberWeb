@@ -3,13 +3,14 @@
     <logo v-if="showLogo" :collapse="isCollapse" />
     <el-scrollbar wrap-class="scrollbar-wrapper">
       <el-menu
-        :default-active="activeMenu"
+        :default-active="menu"
         :collapse="isCollapse"
         :background-color="variables.menuBg"
         :text-color="variables.menuText"
         :unique-opened="false"
         :active-text-color="variables.menuActiveText"
         :collapse-transition="false"
+        @select="handleSelect"
         mode="vertical"
       >
         <sidebar-item v-for="route in routes" :key="route.path" :item="route" :base-path="route.path" />
@@ -25,7 +26,23 @@ import SidebarItem from './SidebarItem'
 import variables from '@/styles/variables.scss'
 
 export default {
+  data() {
+    return {
+      menu: null
+    }
+  },
   components: { SidebarItem, Logo },
+  created() {
+    const path = sessionStorage.getItem('path')
+    this.menu = path === null || path==='' || path === undefined? '/dashboard' : path
+  },
+  methods:{
+    handleSelect(index){
+      console.log(index)
+      sessionStorage.setItem('path',index)
+      this.menu = index
+    },
+  },
   computed: {
     ...mapGetters([
       'sidebar'
@@ -36,7 +53,7 @@ export default {
     activeMenu() {
       const route = this.$route
       const { meta, path } = route
-      // if set path, the sidebar will highlight the path you set
+      sessionStorage.setItem('path',path)
       if (meta.activeMenu) {
         return meta.activeMenu
       }
