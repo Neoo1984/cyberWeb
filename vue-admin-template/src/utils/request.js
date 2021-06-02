@@ -1,11 +1,11 @@
 import axios from 'axios'
-import {MessageBox, Message} from 'element-ui'
+import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
-import {getToken, setToken} from '@/utils/auth'
+import { getToken, setToken } from '@/utils/auth'
 
 // create an axios instance
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API,
+  baseURL: process.env.VUE_APP_BASE_API
   // withCredentials: true,
   // timeout: 5000
 })
@@ -26,16 +26,16 @@ service.interceptors.response.use(response => {
     if (response.status === 200) {
       const data = response.data
       if (!data.success) {
-        if (data.errorCode === "200007") {
+        if (data.errorCode === '200007') {
           MessageBox.confirm(
             '登录过期，请重新登录',
-            "确认登出", {
+            '确认登出', {
               confirmButtonText: '重新登录',
               type: 'warning',
-              showClose:false,
-              showCancelButton:false,
-              closeOnClickModal:false,
-              closeOnPressEscape:false
+              showClose: false,
+              showCancelButton: false,
+              closeOnClickModal: false,
+              closeOnPressEscape: false
             }
           ).then(() => {
             store.dispatch('user/resetToken').then(() => {
@@ -46,7 +46,7 @@ service.interceptors.response.use(response => {
         }
       }
       return response
-    }else {
+    } else {
 
     }
   }
