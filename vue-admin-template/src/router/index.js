@@ -147,9 +147,10 @@ export const constantRoutes = [
   },
 
   {
-    path: '/device-detail',
-    component: () => import('@/views/sub/device-detail/index'),
+    path: '/detail',
+    component: () => import('@/views/sub/detail/index'),
     hidden: true
+
   },
 
   // {

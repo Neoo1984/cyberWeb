@@ -119,6 +119,12 @@
             @click="handleStatus(scope.$index, scope.row)"
           >状态
           </el-button>
+          <el-button
+            size="mini"
+            type="text"
+            @click="handleDetail(scope.$index, scope.row)"
+          >详情
+          </el-button>
           <el-popconfirm
             confirm-button-text="删除"
             cancel-button-text="取消"
@@ -1504,6 +1510,19 @@ export default {
           })
         }
       })
+    },
+    handleDetail(index, row) {
+      console.log(row)
+      const { href } = this.$router.resolve({
+        name: 'Detail',
+        path:'/detail',
+        query:{
+          deviceId : row.deviceId,
+          deviceName : row.deviceName
+        }
+      })
+      window.open(href, '_blank')
+
     }
   }
 }

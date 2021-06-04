@@ -8,7 +8,9 @@
           <item :icon="onlyOneChild.meta.icon||(item.meta&&item.meta.icon)" :title="onlyOneChild.meta.title"/>
         </el-menu-item>
       </app-link>
+
     </template>
+
 
     <el-submenu v-else ref="subMenu" :index="resolvePath(item.path)" popper-append-to-body>
       <template slot="title">
@@ -56,6 +58,7 @@ export default {
     this.onlyOneChild = null
     return {}
   },
+
   methods: {
     hasOneShowingChild(children = [], parent) {
       const showingChildren = children.filter(item => {
@@ -89,6 +92,11 @@ export default {
         return this.basePath
       }
       return path.resolve(this.basePath, routePath)
+    },
+    hasMain(item){
+     const value = item.path
+      console.log(value+"---"+(value.indexOf('/main') !== -1))
+     return  value.indexOf('/main') !== -1
     }
   }
 }
