@@ -48,7 +48,7 @@ export const constantRoutes = [
     component: Layout,
     redirect: '/dashboard',
     children: [{
-      path: 'dashboard',
+      path: '/dashboard',
       name: 'Dashboard',
       component: () => import('@/views/main/dashboard/index'),
       meta: { title: '首页', icon: 'dashboard' }
@@ -147,9 +147,10 @@ export const constantRoutes = [
   },
 
   {
-    path: '/device-detail',
-    component: () => import('@/views/sub/device-detail/index'),
+    path: '/detail',
+    component: () => import('@/views/sub/detail/index'),
     hidden: true
+
   },
 
   // {

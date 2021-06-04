@@ -44,7 +44,7 @@ export function scrollTo(to, duration, callback) {
     var val = Math.easeInOutQuad(currentTime, start, change, duration)
     // move the document.body
     move(val)
-    // do the animation unless its over
+    // doTest the animation unless its over
     if (currentTime < duration) {
       requestAnimFrame(animateScroll)
     } else {
