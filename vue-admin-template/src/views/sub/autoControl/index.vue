@@ -1,6 +1,6 @@
 <template>
     <div class="content">
-
+        <h1>AutoControl</h1>
     </div>
 </template>
 

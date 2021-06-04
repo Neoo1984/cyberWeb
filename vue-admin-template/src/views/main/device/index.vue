@@ -123,6 +123,7 @@
             size="mini"
             type="text"
             @click="handleDetail(scope.$index, scope.row)"
+            v-if="scope.row.deviceType === '2'"
           >详情
           </el-button>
           <el-popconfirm
@@ -519,7 +520,7 @@ export default {
       otaResultList: null,
       statusData: [],
       commandList: null,
-      listLoading: true,
+      listLoading: false,
       statusLoading: false,
       cmdLoading: false,
       total: 0,
@@ -633,7 +634,7 @@ export default {
   },
 
   created() {
-    this.getList()
+   this.getList()
   },
   watch: {
     'listQuery.factoryName': function(e) {

@@ -1,16 +1,12 @@
 <template>
   <div>
-    <h1>DoTest</h1>
+    <h1>Maintance</h1>
   </div>
-
 </template>
 
 <script>
 export default {
-  name: 'DoTest',
-  created() {
-    console.log('我的DO')
-  }
+  name: 'Maintance'
 }
 </script>
 

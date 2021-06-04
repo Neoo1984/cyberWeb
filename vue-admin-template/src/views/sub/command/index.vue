@@ -1,6 +1,6 @@
 <template>
     <div class="content">
-
+      <h1>Command</h1>
     </div>
 </template>
 
