@@ -1,6 +1,6 @@
 <template>
     <div class="content">
-
+      <h1>Battery</h1>
     </div>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
     <div class="content">
-
+      <h1>Warning</h1>
     </div>
 </template>
 
