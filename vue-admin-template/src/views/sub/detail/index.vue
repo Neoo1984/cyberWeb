@@ -1,6 +1,6 @@
 <template>
   <div class="navbar">
-    <el-page-header class="pageHeader" @back="goBack" content="详情页面"/>
+    <el-page-header class="pageHeader" :title="title" @back="goBack" content="设备详情"/>
 
     <el-container class="content">
       <el-aside style="width: auto">
@@ -53,22 +53,30 @@ export default {
   data() {
     return {
       tabPosition: 'left',
-      tabName: '1'
+      tabName: '1',
+      title: '返回设备列表'
     }
   },
   created() {
-
-    console.log(this.$route.query)
+    this.rememberPage()
   },
   methods: {
     goBack() {
-      console.log('go back')
       let path = sessionStorage.getItem('path')
       this.$router.push({ path: path })
     },
-    handleClick(tab, event) {
+    rememberPage(){
+      sessionStorage.setItem('device_name',this.$route.query.deviceName)
+      sessionStorage.setItem('device_id',this.$route.query.deviceId)
+      if (sessionStorage.getItem('detail_tab')){
+        this.tabName = sessionStorage.getItem('detail_tab')
+      }
 
+    },
+    handleClick(tab, event) {
       this.tabName = tab.name
+      sessionStorage.removeItem('detail_tab')
+      sessionStorage.setItem('detail_tab',tab.name)
     }
   }
 }
@@ -82,23 +90,12 @@ export default {
   height: 100%;
 
 }
-
-
 .pageHeader {
   justify-content: left;
   align-items: center;
   height: 50px;
   padding: 0 50px;
   box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
-}
-
-.el-menu-vertical-demo {
-  height: 100%;
-
-}
-
-.tabs {
-  flex: 1;
 }
 
 el-tabs {

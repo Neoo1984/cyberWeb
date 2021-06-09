@@ -23,6 +23,7 @@ service.interceptors.request.use(
 )
 service.interceptors.response.use(response => {
     setToken(response.headers['refresh-token'])
+    sessionStorage.setItem('token',response.headers['refresh-token'])
     if (response.status === 200) {
       const data = response.data
       if (!data.success) {
@@ -44,6 +45,7 @@ service.interceptors.response.use(response => {
           })
           return Promise.reject(new Error(data.message || 'Error'))
         }
+        // TODO userType !== '1' 不让登录
       }
       return response
     } else {

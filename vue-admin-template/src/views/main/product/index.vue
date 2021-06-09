@@ -260,20 +260,7 @@ export default {
       factoryName: [],
       hardVersion: [],
       hardValue: "",
-      productType: [
-        {
-          label: "电池",
-          value: 1
-        },
-        {
-          label: "换电柜",
-          value: 2
-        },
-        {
-          label: "两轮车",
-          value: 3
-        },
-      ],
+      productType: global.productType,
       getModel: {},
       listQuery: {
         current: 1,

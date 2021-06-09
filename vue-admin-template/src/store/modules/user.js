@@ -5,6 +5,8 @@ const getDefaultState = () => {
   return {
     token: getToken(),
     name: '',
+    role:'',
+    roleType:'',
     avatar: ''
   }
 }
@@ -17,6 +19,12 @@ const mutations = {
   },
   SET_TOKEN: (state, token) => {
     state.token = token
+  },
+  SET_ROLE:(state,role) => {
+    state.role = role
+  },
+  SET_TYPE:(state,roleType) => {
+    state.roleType = type
   },
   SET_NAME: (state, name) => {
     state.name = name
@@ -34,7 +42,9 @@ const actions = {
       login({mobile: mobile.trim(), password: password, loginType: loginType}).then(response => {
         if (response.data.success){
           const token = response.data.data.token
+          const role = response.data.data.userInfo
           commit('SET_TOKEN', token)
+          commit('SET_ROLE',role)
           setToken(token)
           resolve(response)
         }else {

@@ -234,6 +234,7 @@
 <script>
 import Pagination from '@/components/Pagination'
 import {softList} from "@/api/table";
+import {global} from "@/common";
 import {
   deleteSoft,
   getFactoryNameList,
@@ -254,39 +255,9 @@ export default {
       disabled: false,
       isSplit: false,
       hasFile: false,
-      deviceType: [
-        {
-          label: "电池",
-          value: 1
-        },
-        {
-          label: "换电柜",
-          value: 2
-        },
-        {
-          label: "两轮车",
-          value: 3
-        },
-      ],
-      packageSplit: [
-        {
-          label: "不拆包",
-          value: '0'
-        }, {
-          label: "拆包",
-          value: '1'
-        }
-      ],
-      splitLength: [
-        {
-          label: 1024,
-          value: 1024
-        },
-        {
-          label: 0,
-          value: 0
-        },
-      ],
+      deviceType: global.deviceType,
+      packageSplit: global.packageSplit,
+      splitLength: global.splitLength,
       listQuery: {
         current: 1,
         size: 20,

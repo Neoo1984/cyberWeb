@@ -166,6 +166,7 @@ export default {
             if (response.data.success){
               this.$router.push({path: this.redirect || '/'})
               console.log(response)
+              //TODO 保存userInfo
               this.loading = false
             }else {
               this.$notify({
