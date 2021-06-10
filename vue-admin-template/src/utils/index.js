@@ -191,3 +191,16 @@ export function renderCmdResult(row, column, cellValue) {
       return '无数据'
   }
 }
+export function renderCmdStatus(row, column, cellValue) {
+  return row.isOnline === "1" ? '发送成功' : '收到设备回执通知'
+}
+//渲染设备类型
+export function renderType(row, column, cellValue) {
+  return row.deviceType === '1' ? '电池' : row.deviceType === '2' ? '换电柜' : '两轮车'
+}
+// 指令类型 cmdType: 1:OTA指令 2：设备OTA版本查询 3：设备固件升级
+// 指令状态 cmdStatus: 1:发送成功 2：受到设备回执通知
+// 执行结果 cmdResult: 0: 正确应答 1:无效报文 2：校验错误 3：指令超时 4：操作不必要 5：设备忙，无法操作
+export function renderCmdType(row, column, cellValue) {
+  return row.deviceType === '1' ? 'OTA指令' : row.deviceType === '2' ? '设备OTA版本查询' : '设备固件升级'
+}

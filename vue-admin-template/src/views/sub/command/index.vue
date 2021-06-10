@@ -1,12 +1,37 @@
 <template>
+  <div>
     <div class="content">
-      <h1>Command</h1>
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
     </div>
+    <div class="content">
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+    </div>
+    <div class="content">
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+      <img alt="90%" :src="imgUrl" />
+    </div>
+  </div>
 </template>
 
 <script>
 export default {
   name: 'Command',
+  data() {
+    return {
+      imgUrl:require('@/icons/svg/battery90.svg')
+    }
+  },
   created() {
   }
 }
@@ -14,8 +39,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.content{
- flex: 1;
-  background-color: #2b2f3a;
-}
+
 </style>

@@ -3,7 +3,7 @@
     <el-page-header class="pageHeader" :title="title" @back="goBack" content="设备详情"/>
 
     <el-container class="content">
-      <el-aside style="width: auto">
+<!--      <el-aside style="width: auto">
         <el-tabs style="height: 100%;padding-left: 18px" class="tabs" :tab-position="tabPosition" :value="tabName"
                  @tab-click="handleClick"
         >
@@ -30,7 +30,7 @@
         <AutoControl v-else-if="tabName === '7'"/>
         <Setting v-else-if="tabName === '8'"/>
         <Warning v-else/>
-      </el-main>
+      </el-main>-->
     </el-container>
   </div>
 
@@ -45,7 +45,7 @@ import Setting from '@/views/sub/setting'
 import Warning from '@/views/sub/warning'
 import AutoControl from '@/views/sub/autoControl'
 import Command from '@/views/sub/command'
-import Maintance from '@/views/sub/maintance'
+import Maintance from '@/views/sub/maintenance'
 
 export default {
   name: 'Detail',

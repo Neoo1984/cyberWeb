@@ -79,7 +79,7 @@ export default {
   },
   data() {
     var checkMobile = (rule, value, callback) => {
-      const phone = /^1[3456789]{1}\d{9}$/
+      const phone = /^1[3456789]\d{9}$/
       if (value === '') {
         callback(new Error('手机号不能为空'));
       } else if (!phone.test(value)) {
