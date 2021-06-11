@@ -48,6 +48,7 @@ export const constantRoutes = [
     path: '/',
     component: Layout,
     redirect: '/dashboard',
+    menu:'1',
     children: [{
       path: 'dashboard',
       name: 'Dashboard',
@@ -195,9 +196,10 @@ export const constantRoutes = [
     path: '/battery',
     redirect: '/battery',
     component: SubLayout,
+    meta: { title: '电池包数据', state: '2' },
     children: [
       {
-        path: 'index',
+        path: 'batteryInfo',
         component: () => import('@/views/sub/battery/index'),
         name: 'Battery',
         meta: { title: '电池包数据', state: '2' },
