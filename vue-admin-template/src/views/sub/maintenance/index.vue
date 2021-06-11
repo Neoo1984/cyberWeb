@@ -10,10 +10,10 @@ export default {
   name: 'Maintenance',
   data(){
     return {
+
     }
   },
   created() {
-
 
   },
   methods:{
