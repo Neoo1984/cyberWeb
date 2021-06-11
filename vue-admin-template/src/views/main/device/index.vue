@@ -455,7 +455,7 @@ import {
   queryProductModelList,
   cmdPage, queryHardVersion, otaSend, updateDevice, deleteDevice, downloadFile
 } from '@/api/operation'
-import {renderCmdResult} from '@/utils'
+import {renderCmdResult, renderCmdStatus, renderCmdType,renderType} from '@/utils'
 import {global} from "@/common";
 
 export default {
@@ -483,7 +483,7 @@ export default {
       otaDialogVisible: false,
       commandVisible: false,
       deviceType:global.deviceType,
-
+      dialogStatus:'',
       listQuery: {
         current: 1,
         size: 20,
@@ -504,6 +504,9 @@ export default {
       },
       updateType:global.updateType,
       renderCmdResult:renderCmdResult,
+      renderCmdStatus:renderCmdStatus,
+      renderCmdType:renderCmdType,
+      renderType:renderType,
       deviceNames: [],
       productModel: [],
       hardVersion: [],
@@ -876,37 +879,7 @@ export default {
       })
 
     },
-    //渲染设备类型
-    renderType(row, column, cellValue) {
-      return row.deviceType === '1' ? '电池' : row.deviceType === '2' ? '换电柜' : '两轮车'
-    },
-    // 指令类型 cmdType: 1:OTA指令 2：设备OTA版本查询 3：设备固件升级
-    // 指令状态 cmdStatus: 1:发送成功 2：受到设备回执通知
-    // 执行结果 cmdResult: 0: 正确应答 1:无效报文 2：校验错误 3：指令超时 4：操作不必要 5：设备忙，无法操作
-    renderCmdType(row, column, cellValue) {
-      return row.deviceType === '1' ? 'OTA指令' : row.deviceType === '2' ? '设备OTA版本查询' : '设备固件升级'
-    },
-    renderCmdStatus(row, column, cellValue) {
-      return row.isOnline === '1' ? '发送成功' : '收到设备回执通知'
-    },
-    renderCmdResult(row, column, cellValue) {
-      switch (row.cmdResult) {
-        case '0':
-          return '正确应答'
-        case '1':
-          return '无效报文'
-        case '2':
-          return '校验错误'
-        case '3':
-          return '指令超时'
-        case '4':
-          return '操作不必要'
-        case '5':
-          return '设备忙，无法操作'
-        default:
-          return '无数据'
-      }
-    },
+
 
     //新增主设备
     handleMainCreate() {
