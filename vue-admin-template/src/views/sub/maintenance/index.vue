@@ -10,7 +10,6 @@ export default {
   name: 'Maintenance',
   data(){
     return {
-      icon_battery:''
     }
   },
   created() {
