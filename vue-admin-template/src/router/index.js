@@ -197,22 +197,47 @@ export const constantRoutes = [
     redirect: '/battery',
     component: SubLayout,
     meta: { title: '电池包数据', state: '2' },
-    children: [
-      {
-        path: 'batteryInfo',
-        component: () => import('@/views/sub/battery/index'),
-        name: 'Battery',
-        meta: { title: '电池包数据', state: '2' },
+
         children: [
           {
-            path: 'index',
+            path: 'version',
             component: () => import('@/views/sub/battery/item/index'),
             name: 'Item',
-            meta: { title: '我是item',state:'2' }
-          }
-        ]
-      }
-    ]
+            meta: { title: '厂家版本',state:'2' }
+          },
+          {
+            path: 'bms',
+            component: () => import('@/views/sub/battery/item/index'),
+            name: 'Item',
+            meta: { title: 'BMS编码',state:'2' }
+          },
+          {
+            path: 'batteryCode',
+            component: () => import('@/views/sub/battery/item/index'),
+            name: 'Item',
+            meta: { title: '电池编码',state:'2' }
+          },
+          {
+            path: 'soc',
+            component: () => import('@/views/sub/battery/item/index'),
+            name: 'Item',
+            meta: { title: 'soc',state:'2' }
+          },
+          {
+            path: 'volState',
+            component: () => import('@/views/sub/battery/item/index'),
+            name: 'Item',
+            meta: { title: '组电状态',state:'2' }
+          },
+          {
+            path: 'singleVol',
+            component: () => import('@/views/sub/battery/item/index'),
+            name: 'Item',
+            meta: { title: '单体电压',state:'2' }
+          },
+          ]
+
+
   },
   {
     path: '/doTest',
