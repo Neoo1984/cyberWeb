@@ -1,20 +1,23 @@
 <template>
   <div class="content">
-    <h1>Battery</h1>
-
+    <el-tabs  :tab-position="tabPosition">
+      <el-tab-pane label="用户管理">用户管理</el-tab-pane>
+      <el-tab-pane label="配置管理">配置管理</el-tab-pane>
+      <el-tab-pane label="角色管理">角色管理</el-tab-pane>
+      <el-tab-pane label="定时任务补偿">定时任务补偿</el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <script>
 export default {
   name: 'Battery',
-  data() {
-    return {
-      imgUrl: require('@/icons/svg/battery90.svg')
-
-    }
-  },
   created() {
+  },
+  data(){
+    return{
+      tabPosition:'left'
+    }
   }
 }
 
@@ -23,6 +26,8 @@ export default {
 <style lang="scss" scoped>
 .content {
   flex: 1;
-  background-color: #2b2f3a;
+}
+.el-tabs{
+  height: 100%;
 }
 </style>
