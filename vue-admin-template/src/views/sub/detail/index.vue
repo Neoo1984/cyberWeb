@@ -4,6 +4,7 @@
       <el-aside style="width: 180px;height:100%;padding-top: 5px;">
         <el-scrollbar style="height: 100%">
           <el-menu
+            style="height: 100%"
             :default-active="index"
             :collapse="isCollapse"
             @select="clickItem"
@@ -20,20 +21,12 @@
 </template>
 
 <script>
-import DoTest from '@/views/sub/doTest'
-import DiTest from '@/views/sub/diTest'
-import Info from '@/views/sub/info'
-import Battery from '@/views/sub/battery'
-import Setting from '@/views/sub/setting'
-import Warning from '@/views/sub/warning'
-import AutoControl from '@/views/sub/autoControl'
-import Command from '@/views/sub/command'
-import Maintance from '@/views/sub/maintenance'
+
 import SidebarItem from '@/layout/components/Sidebar/SidebarItem'
 
 export default {
   name: 'Detail',
-  components: { DiTest, DoTest, Info, Battery, Setting, Warning, AutoControl, Command, Maintance, SidebarItem },
+  components: { SidebarItem },
   data() {
     return {
       tabPosition: 'left',
@@ -56,19 +49,6 @@ export default {
   },
   methods: {
 
-    rememberPage() {
-      sessionStorage.setItem('device_name', this.$route.query.deviceName)
-      sessionStorage.setItem('device_id', this.$route.query.deviceId)
-      if (sessionStorage.getItem('detail_tab')) {
-        this.tabName = sessionStorage.getItem('detail_tab')
-      }
-
-    },
-    handleClick(tab, event) {
-      this.tabName = tab.name
-      sessionStorage.removeItem('detail_tab')
-      sessionStorage.setItem('detail_tab', tab.name)
-    },
     clickItem(index) {
       this.index = index
       sessionStorage.setItem('sub_menu', index)
