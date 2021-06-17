@@ -201,37 +201,37 @@ export const constantRoutes = [
         children: [
           {
             path: 'version',
-            component: () => import('@/views/sub/battery/item/index'),
+            component: () => import('@/views/sub/battery/item/factory/index'),
             name: 'Item',
             meta: { title: '厂家版本',state:'2' }
           },
           {
             path: 'bms',
-            component: () => import('@/views/sub/battery/item/index'),
+            component: () => import('@/views/sub/battery/item/bmsCode/index'),
             name: 'Item',
             meta: { title: 'BMS编码',state:'2' }
           },
           {
             path: 'batteryCode',
-            component: () => import('@/views/sub/battery/item/index'),
+            component: () => import('@/views/sub/battery/item/batteryCode/index'),
             name: 'Item',
             meta: { title: '电池编码',state:'2' }
           },
           {
             path: 'soc',
-            component: () => import('@/views/sub/battery/item/index'),
+            component: () => import('@/views/sub/battery/item/soc/index'),
             name: 'Item',
             meta: { title: 'soc',state:'2' }
           },
           {
             path: 'volState',
-            component: () => import('@/views/sub/battery/item/index'),
+            component: () => import('@/views/sub/battery/item/volState/index'),
             name: 'Item',
             meta: { title: '组电状态',state:'2' }
           },
           {
             path: 'singleVol',
-            component: () => import('@/views/sub/battery/item/index'),
+            component: () => import('@/views/sub/battery/item/singleVol/index'),
             name: 'Item',
             meta: { title: '单体电压',state:'2' }
           },
