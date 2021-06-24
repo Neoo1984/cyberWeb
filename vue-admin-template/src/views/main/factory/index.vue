@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :inline="true" class="demo-form-inline" size="small">
+    <el-form :inline="true" size="small">
       <el-form-item label="厂商名称">
         <el-input v-model="listQuery.factoryName" placeholder="厂商名称" style="width: 200px"
                   class="filter-item"></el-input>

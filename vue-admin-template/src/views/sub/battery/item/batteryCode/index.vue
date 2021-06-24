@@ -1,13 +1,28 @@
 <template>
 
+  <div style="display: flex;flex-direction: column">
+
+    <el-form :inline="true" size="small">
+      <el-form-item label="数据采集时间">
+        <el-input style="width: 300px"
+                  class="filter-item"
+                  disabled
+        ></el-input>
+      </el-form-item>
+
+      <el-button type="primary" @click="handleRefresh" icon="el-icon-refresh" size="small">刷新</el-button>
+      <el-button type="primary" @click="handleOta" icon="el-icon-plus" size="small">电池包OTA</el-button>
+    </el-form>
+
 
   <div class="main">
 
-      <div class="right" @click="drawer = true" type="primary" >
-        查看设备信息
-      </div>
+    <div class="right" @click="drawer = true" type="primary">
+      查看设备信息
+    </div>
+
     <div class="content">
-      <div v-for="item in list" class="item-div">
+      <div v-for="item in list" class="item-div" :style="`width:${itemWidth}%;`">
         <div>
           {{ item }}
         </div>
@@ -16,28 +31,23 @@
 
     </div>
 
-
-    <!--        <el-scrollbar >-->
-    <!--          <comm :device-type="deviceType"-->
-    <!--                :device-code="deviceCode"-->
-    <!--                :factory-name="factoryName"-->
-    <!--                :product-num="productNum"-->
-    <!--                :hw-version="hwVersion"-->
-    <!--          ></comm>-->
-    <!--        </el-scrollbar>-->
-
-    <!--    <el-drawer-->
-    <!--      title="我是标题"-->
-    <!--      :visible.sync="drawer"-->
-    <!--      :direction="direction"-->
-    <!--      :before-close="handleClose"-->
-    <!--    >-->
-    <!--      <span>我来啦!</span>-->
-    <!--    </el-drawer>-->
+    <el-drawer
+      title=""
+      :visible.sync="drawer"
+      :direction="direction"
+      :before-close="handleClose"
+    >
+      <comm :device-type="deviceType"
+            :device-code="deviceCode"
+            :factory-name="factoryName"
+            :product-num="productNum"
+            :hw-version="hwVersion"
+      ></comm>
+    </el-drawer>
 
 
   </div>
-
+  </div>
 </template>
 
 <script>
@@ -54,17 +64,27 @@ export default {
       factoryName: '荣天',
       productNum: '00',
       hwVersion: 'v0.0.1',
-      list: [1, 2, 3, 4, 5, 6, 7, 8],
+      list: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
       drawer: false,
       direction: 'rtl',
-      itemClass : ''
+      itemWidth: 0,
+      formInline: {}
     }
   },
   created() {
-    this.itemClass = ``
-  },
-  methods(){
+    this.itemWidth = 100 / (Math.ceil(this.list.length / 4))
 
+  },
+  methods: {
+    handleClose(done) {
+      done()
+    },
+    handleRefresh() {
+
+    },
+    handleOta() {
+
+    }
   }
 
 }
@@ -76,18 +96,18 @@ export default {
   flex-direction: column-reverse;
   justify-items: center;
   align-items: center;
-  height: 670px;
+  height: 730px;
   width: 100%;
   flex-wrap: wrap;
-  padding: 30px;
   margin-right: 15%;
-  margin-left: 15%;
+  margin-left: 10%;
+  margin-top: 20px;
 
 }
 
 
 .item-div {
-  height: 150px;
+  height: 180px;
   width: 33%;
   border: #333 solid 1px;
   margin-bottom: 1px;
