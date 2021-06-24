@@ -1,16 +1,17 @@
 <template>
   <el-row align="middle">
     <el-page-header class="pageHeader" :title="title" @back="goBack" content="设备详情"/>
-
-    <el-container>
-      <el-aside width="180px">
-        <detail />
-      </el-aside>
-        <el-main >
-          <router-view :key="key" />
+    <el-scrollbar style="height: 100%">
+      <el-container>
+        <el-aside width="180px">
+          <detail/>
+        </el-aside>
+        <el-main>
+            <router-view :key="key"/>
         </el-main>
-    </el-container>
 
+      </el-container>
+    </el-scrollbar>
   </el-row>
 
 </template>
@@ -48,7 +49,7 @@ export default {
       sessionStorage.removeItem('sub_menu')
       let path = sessionStorage.getItem('path')
       this.$router.push({ path: path })
-    },
+    }
   }
 }
 </script>
@@ -57,7 +58,7 @@ export default {
 @import "~@/styles/mixin.scss";
 @import "~@/styles/variables.scss";
 
-.main{
+.main {
 
 }
 
@@ -67,6 +68,21 @@ export default {
   height: 50px;
   padding: 0 50px;
   box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
+
+  background-color: #fff;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  position: fixed;
+}
+
+.el-scrollbar__wrap {
+  overflow-y: auto;
+}
+
+.el-main{
+  margin-top: 50px;
 }
 
 </style>

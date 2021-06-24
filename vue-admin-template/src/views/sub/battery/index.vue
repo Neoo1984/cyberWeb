@@ -1,4 +1,5 @@
 <template>
+
   <div class="content">
     <router-view/>
   </div>
@@ -22,6 +23,7 @@ export default {
 .content {
   flex: 1;
   background-color: #20a0ff;
+
 }
 .el-tabs{
   height: 100%;

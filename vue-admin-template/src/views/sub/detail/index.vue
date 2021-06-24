@@ -1,6 +1,5 @@
 <template>
   <div class="navbar">
-    <el-container style="height: 100%">
       <el-aside style="width: 180px;height:100%;padding-top: 5px;">
         <el-scrollbar style="height: 100%">
           <el-menu
@@ -14,7 +13,6 @@
           </el-menu>
         </el-scrollbar>
       </el-aside>
-    </el-container>
 
   </div>
 
