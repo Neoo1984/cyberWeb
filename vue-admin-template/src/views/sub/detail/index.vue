@@ -39,6 +39,8 @@ export default {
     sessionStorage.setItem('menu_state', '2')
     let menu = sessionStorage.getItem('sub_menu')
     this.index = menu !== null ? menu : '/info/index'
+    console.log(this.$route.query.deviceName + '---')
+
   },
   computed: {
     key() {

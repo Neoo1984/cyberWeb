@@ -162,10 +162,9 @@ export function renderOtaStatus(row, column, cellValue) {
 /*
 * 渲染进度
 * */
-export function renderProgress(progress){
-  console.log(progress)
-  if (progress !== null&&progress !== ''){
-    return progress + '%'
+export function renderProgress(row, column, cellValue){
+  if (row.downloadProgress !== null&& row.downloadProgress !== ''){
+    return row.downloadProgress + '%'
   }else {
     return '--'
   }
@@ -198,9 +197,83 @@ export function renderCmdStatus(row, column, cellValue) {
 export function renderType(row, column, cellValue) {
   return row.deviceType === '1' ? '电池' : row.deviceType === '2' ? '换电柜' : '两轮车'
 }
+export function renderSubType(deviceType) {
+  return deviceType === '1' ? '电池' : deviceType === '2' ? '换电柜' : '两轮车'
+}
 // 指令类型 cmdType: 1:OTA指令 2：设备OTA版本查询 3：设备固件升级
 // 指令状态 cmdStatus: 1:发送成功 2：受到设备回执通知
 // 执行结果 cmdResult: 0: 正确应答 1:无效报文 2：校验错误 3：指令超时 4：操作不必要 5：设备忙，无法操作
 export function renderCmdType(row, column, cellValue) {
   return row.deviceType === '1' ? 'OTA指令' : row.deviceType === '2' ? '设备OTA版本查询' : '设备固件升级'
+}
+/*
+任务状态
+1 已创建
+2 创建失败（设备响应）
+3 执行中
+4 已中止
+5 已结束
+*/
+export function renderTaskStatus(taskStatus) {
+  switch (taskStatus) {
+    case 1:
+      return '已创建'
+    case 2:
+      return '创建失败'
+    case 3:
+      return '执行中'
+    case 4:
+      return '已中止'
+    case 5:
+      return '已结束'
+    default:
+      return '无数据'
+  }
+}
+/*
+任务操作
+1 终止
+2 恢复
+*/
+export function renderTaskOperate(operateType) {
+  switch (operateType) {
+    case '1':
+      return '终止'
+    case '2':
+      return '恢复'
+  }
+}
+/*
+任务状态
+1 已创建
+2 创建失败（设备响应）
+3 执行中
+4 已中止*/
+export function renderOtaUpdateStatus(row, column, cellValue) {
+  switch (row.taskStatus) {
+    case 1:
+      return '已创建'
+    case 2:
+      return '创建失败'
+    case 3:
+      return '执行中'
+    case 4:
+      return '已中止'
+    default:
+      return '无数据'
+  }
+}
+/*
+用户状态
+1 注销
+0 正常
+*/
+export function renderDelete(row, column, cellValue) {
+  switch (row.isDelete) {
+    case '1':
+      return '已注销'
+    case '0':
+      return '正常'
+
+  }
 }

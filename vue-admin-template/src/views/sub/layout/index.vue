@@ -8,6 +8,22 @@
         </el-aside>
         <el-main>
             <router-view :key="key"/>
+            <el-tooltip  v-if="key !== '/info/index'" class="item" effect="dark" content="查看换电柜基本信息" placement="left-start">
+              <div @click="drawer = true" class="right">
+                <i class="el-icon-d-arrow-left arrow"></i>
+              </div>
+            </el-tooltip>
+
+            <el-drawer
+              title="换电柜基本信息"
+              :visible.sync="drawer"
+              :direction="direction"
+              :before-close="handleClose"
+            >
+              <comm :item="infoQuery"></comm>
+            </el-drawer>
+
+
         </el-main>
 
       </el-container>
@@ -20,6 +36,7 @@
 import { Navbar, Sidebar, AppMain } from '@/layout/components/'
 import ResizeMixin from '@/layout/mixin/ResizeHandler'
 import Detail from '@/views/sub/detail'
+import Comm from '@/views/sub/comm'
 
 export default {
   name: 'SubLayout',
@@ -27,11 +44,21 @@ export default {
     Detail,
     Navbar,
     Sidebar,
-    AppMain
+    AppMain,
+    Comm
   },
   data() {
     return {
-      title: '返回设备列表'
+      title: '返回设备列表',
+      direction:'rtl',
+      infoQuery:{
+        deviceName : '无数据',
+        factoryName : '无数据',
+        hardVersion : '无数据',
+        productModel : '无数据',
+        deviceType : '无数据',
+      },
+      drawer:false
     }
   },
   mixins: [ResizeMixin],
@@ -39,6 +66,9 @@ export default {
     key() {
       return this.$route.path
     }
+  },
+  created() {
+    this.saveInfo()
   },
   methods: {
     handleClickOutside() {
@@ -49,6 +79,15 @@ export default {
       sessionStorage.removeItem('sub_menu')
       let path = sessionStorage.getItem('path')
       this.$router.push({ path: path })
+    },
+    handleClose(done) {
+      done()
+    },
+    saveInfo(){
+      if (this.$route.query !== null && Object.keys(this.$route.query).length !== 0) {
+        sessionStorage.setItem('infoQuery',JSON.stringify(this.$route.query))
+        this.infoQuery = JSON.parse(sessionStorage.getItem('infoQuery'))
+      }
     }
   }
 }

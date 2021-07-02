@@ -3,9 +3,9 @@
     <div class="filter-container">
       <el-form :inline="true" class="demo-form-inline" size="small">
         <el-form-item label="设备类型">
-          <el-select v-model="listQuery.deviceType" placeholder="请选择设备类型">
+          <el-select v-model="listQuery.deviceType" @change="getList" placeholder="请选择设备类型">
             <el-option
-              v-for="item in deviceType"
+              v-for="item in listDeviceType"
               :key="item.index"
               :label="item.label"
               :value="item.value"
@@ -13,10 +13,11 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="厂商名称">
-          <el-select v-model="listQuery.factoryName" placeholder="请选择厂商名称" style="width: 200px" class="filter-item">
+        <el-form-item label="厂商">
+          <el-select filterable @focus="getFactoryName" @change="getList" v-model="listQuery.factoryName" placeholder="请选择厂商名称"
+                     style="width: 200px" class="filter-item">
             <el-option
-              v-for="item in factoryName"
+              v-for="item in listFactoryName"
               :key="item.index"
               :label="item.label"
               :value="item.value"
@@ -25,9 +26,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="产品型号">
-          <el-select v-model="listQuery.productModel" placeholder="请选择产品型号" style="width: 200px" class="filter-item">
+          <el-select @focus="getProduct" @change="getList" v-model="listQuery.productModel" placeholder="请选择产品型号"
+                     style="width: 200px" class="filter-item">
             <el-option
-              v-for="item in productModel"
+              v-for="item in listProductModel"
               :key="item.index"
               :label="item.label"
               :value="item.value"
@@ -36,9 +38,9 @@
           </el-select>
         </el-form-item>
         <el-form-item label="硬件版本">
-          <el-select v-model="listQuery.hardVersion" placeholder="请选择产品型号" style="width: 200px" class="filter-item">
+          <el-select v-model="listQuery.hardVersion" @focus="getHard" @change="getList" placeholder="请选择产品型号" style="width: 200px" class="filter-item">
             <el-option
-              v-for="item in hardVersion"
+              v-for="item in listHardVersion"
               :key="item.index"
               :label="item.label"
               :value="item.value"
@@ -46,12 +48,42 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="是否在线">
+          <el-select v-model="listQuery.isOnline" @change="getList" placeholder="请选择是否在线" style="width: 200px"
+                     class="filter-item">
+            <el-option
+              v-for="item in isOnline"
+              :key="item.index"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="只查询主设备">
+          <el-select v-model="listQuery.isShowMain" @change="getList" placeholder="请选择是否在线" style="width: 200px"
+                     class="filter-item">
+            <el-option
+              v-for="item in isShowMain"
+              :key="item.index"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="设备编码">
+          <el-input  @change="getList" v-model="listQuery.deviceName" :disabled=slaveDisabled placeholder="请输入设备编码" style="width: 80%"
+                    class="filter-item"
+          ></el-input>
+        </el-form-item>
 
-        <el-button type="primary" @click="search" icon="el-icon-search" size="small">查询</el-button>
+        <el-button type="primary" @click="getList" icon="el-icon-search" size="small">查询</el-button>
         <el-button type="primary" @click="handleMainCreate" icon="el-icon-plus" size="small">新建主设备</el-button>
         <el-button type="primary" @click="handleSlaveCreate" icon="el-icon-plus" size="small">新建从设备</el-button>
         <el-button type="primary" @click="handleUploadMain" icon="el-icon-document-add" size="small">批量导入</el-button>
         <el-button type="primary" @click="handleOta" icon="el-icon-thumb" size="small">批量OTA</el-button>
+        <el-button type="primary" @click="handleOtaCreate" icon="el-icon-thumb" size="small">新建OTA任务</el-button>
       </el-form>
     </div>
     <el-table
@@ -105,7 +137,7 @@
           {{ scope.row.mainDeviceName }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="操作" fixed="right" width="180">
+      <el-table-column align="center" label="操作" fixed="right" width="150">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -120,6 +152,11 @@
             v-if="scope.row.deviceType === '2'"
           >详情
           </el-button>
+          <!--          <el-button
+                      size="mini"
+                      type="text"
+                      @click="handleCommand(scope.$index, scope.row)">指令
+                    </el-button>-->
           <el-popconfirm
             confirm-button-text="删除"
             cancel-button-text="取消"
@@ -324,57 +361,57 @@
     </el-dialog>
 
     <!--    指令-->
-    <el-dialog
-      :title="textMap[dialogStatus]"
-      :visible.sync="commandVisible"
-      width="90%"
-    >
-      <el-table
-        :data="commandList"
-        v-loading="cmdLoading"
-        style="width: 100%"
-      >
-        <el-table-column label="指令内容" align="center" width="150">
-          <template slot-scope="scope">
-            {{ scope.row.cmd }}
-          </template>
-        </el-table-column>
-        <el-table-column label="指令编码" align="center" width="150">
-          <template slot-scope="scope">
-            {{ scope.row.cmdCode }}
-          </template>
-        </el-table-column>
-        <el-table-column label="指令主键id" align="center" width="150">
-          <template slot-scope="scope">
-            {{ scope.row.cmdId }}
-          </template>
-        </el-table-column>
-        <el-table-column label="指令类型" align="center" width="150" :formatter="renderCmdType">
-        </el-table-column>
-        <el-table-column label="指令状态" align="center" width="150" :formatter="renderCmdStatus">
-        </el-table-column>
+    <!--    <el-dialog
+          :title="textMap[dialogStatus]"
+          :visible.sync="commandVisible"
+          width="90%"
+        >
+          <el-table
+            :data="commandList"
+            v-loading="cmdLoading"
+            style="width: 100%"
+          >
+            <el-table-column label="指令内容" align="center" width="150">
+              <template slot-scope="scope">
+                {{ scope.row.cmd }}
+              </template>
+            </el-table-column>
+            <el-table-column label="指令编码" align="center" width="150">
+              <template slot-scope="scope">
+                {{ scope.row.cmdCode }}
+              </template>
+            </el-table-column>
+            <el-table-column label="指令主键id" align="center" width="150">
+              <template slot-scope="scope">
+                {{ scope.row.cmdId }}
+              </template>
+            </el-table-column>
+            <el-table-column label="指令类型" align="center" width="150" :formatter="renderCmdType">
+            </el-table-column>
+            <el-table-column label="指令状态" align="center" width="150" :formatter="renderCmdStatus">
+            </el-table-column>
 
-        <el-table-column label="指令编号" align="center" width="150">
-          <template slot-scope="scope">
-            {{ scope.row.messageId }}
-          </template>
-        </el-table-column>
-        <el-table-column label="设备编号" align="center" width="150">
-          <template slot-scope="scope">
-            {{ scope.row.deviceName }}
-          </template>
-        </el-table-column>
-        <el-table-column label="指令结果" align="center" width="150" :formatter="renderCmdResult">
-        </el-table-column>
+            <el-table-column label="指令编号" align="center" width="150">
+              <template slot-scope="scope">
+                {{ scope.row.messageId }}
+              </template>
+            </el-table-column>
+            <el-table-column label="设备编号" align="center" width="150">
+              <template slot-scope="scope">
+                {{ scope.row.deviceName }}
+              </template>
+            </el-table-column>
+            <el-table-column label="指令结果" align="center" width="150" :formatter="renderCmdResult">
+            </el-table-column>
 
-      </el-table>
-      <pagination v-show="commandTotal>0" :total="commandTotal" :page.sync="commandListQuery.current"
-                  :limit.sync="commandListQuery.size" @pagination="getCommandList"
-      />
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="commandVisible = false">关 闭</el-button>
-      </span>
-    </el-dialog>
+          </el-table>
+          <pagination v-show="commandTotal>0" :total="commandTotal" :page.sync="commandListQuery.current"
+                      :limit.sync="commandListQuery.size" @pagination="getCommandList"
+          />
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="commandVisible = false">关 闭</el-button>
+          </span>
+        </el-dialog>-->
     <!--ota-->
     <el-dialog
       :title="textMap[dialogStatus]"
@@ -447,7 +484,7 @@
 
 <script>
 import Pagination from '@/components/Pagination'
-import { getDevice } from '@/api/table'
+import {getDevice} from '@/api/table'
 import {
   createDevice,
   massSave,
@@ -455,12 +492,12 @@ import {
   queryProductModelList,
   cmdPage, queryHardVersion, otaSend, updateDevice, deleteDevice, downloadFile
 } from '@/api/operation'
-import {renderCmdResult, renderCmdStatus, renderCmdType,renderType} from '@/utils'
+import {renderCmdResult, renderCmdStatus, renderCmdType, renderType } from '@/utils'
 import {global} from "@/common";
 
 export default {
   name: 'Device',
-  components: { Pagination },
+  components: {Pagination},
   data() {
     return {
       list: null,
@@ -482,15 +519,20 @@ export default {
       slaveDisabled: false,
       otaDialogVisible: false,
       commandVisible: false,
-      deviceType:global.deviceType,
-      dialogStatus:'',
+      listDeviceType: global.deviceType,
+      deviceType: global.tempDeviceType,
+      isOnline: global.isOnline,
+      dialogStatus: '',
       listQuery: {
         current: 1,
         size: 20,
-        deviceType: '',
-        factoryName: '',
-        hardVersion: '',
-        productModel: ''
+        deviceType: undefined,
+        factoryName: undefined,
+        hardVersion: undefined,
+        productModel: undefined,
+        isOnline: undefined,
+        deviceName: undefined,
+        isShowMain: false,
       },
       commandListQuery: {
         current: 1,
@@ -499,19 +541,45 @@ export default {
       },
       otaTemp: {
         deviceNames: [],
-        packageId: '',
+        packageId: undefined,
         updateType: 0
       },
-      updateType:global.updateType,
-      renderCmdResult:renderCmdResult,
-      renderCmdStatus:renderCmdStatus,
-      renderCmdType:renderCmdType,
-      renderType:renderType,
+      updateType: global.updateType,
+      renderCmdResult: renderCmdResult,
+      renderCmdStatus: renderCmdStatus,
+      renderCmdType: renderCmdType,
+      renderType: renderType,
       deviceNames: [],
-      productModel: [],
-      hardVersion: [],
+      listProductModel: [
+        {
+          label: '全部',
+          value: undefined
+        }
+      ],
+      isShowMain:[
+        {
+          label: '否',
+          value: false
+        },
+        {
+          label: '是',
+          value: true
+        }
+      ],
+      listHardVersion: [
+        {
+          label: '全部',
+          value: undefined
+        }
+      ],
+      hardVersion:[],
       hard: [],
-      factoryName: [],
+      listFactoryName: [
+        {
+          label: '全部',
+          value: undefined
+        }
+      ],
       tempProductModel: [],
       tempHardVersion: [],
       tempFactoryName: [],
@@ -528,346 +596,345 @@ export default {
         ota: 'OTA'
       },
       mainTemp: {
-        mainDeviceName: '',
-        deviceName: '',
-        deviceType: '',
-        factoryName: '',
-        productKey: '',
-        productModel: '',
-        hardVersion: '',
+        mainDeviceName: undefined,
+        deviceName: undefined,
+        deviceType: undefined,
+        factoryName: undefined,
+        productKey: undefined,
+        productModel: undefined,
+        hardVersion: undefined,
         softVersion: undefined,
         excelFile: null
       },
       rules: {
-        deviceName: [{ required: true, message: '请输入设备编号', trigger: 'blur' }],
-        deviceType: [{ required: true, message: '请选择设备类型', trigger: 'blur' }],
-        factoryName: [{ required: true, message: '请选择厂商名称', trigger: 'blur' }],
-        productModel: [{ required: true, message: '请选择产品型号', trigger: 'blur' }],
-        hardVersion: [{ required: true, message: '请选择硬件版本', trigger: 'blur' }],
-        mainDeviceName: [{ required: true, message: '请输入主设备编码', trigger: 'blur' }],
-        excelFile: [{ required: true, message: '请选择上传文件', trigger: 'blur' }]
+        deviceName: [{required: true, message: '请输入设备编号', trigger: 'blur'}],
+        deviceType: [{required: true, message: '请选择设备类型', trigger: 'blur'}],
+        factoryName: [{required: true, message: '请选择厂商名称', trigger: 'blur'}],
+        productModel: [{required: true, message: '请选择产品型号', trigger: 'blur'}],
+        hardVersion: [{required: true, message: '请选择硬件版本', trigger: 'blur'}],
+        mainDeviceName: [{required: true, message: '请输入主设备编码', trigger: 'blur'}],
+        excelFile: [{required: true, message: '请选择上传文件', trigger: 'blur'}]
       },
-      otaRules: { packageId: [{ required: true, message: '请选择软件版本', trigger: 'blur' }] },
+      otaRules: {packageId: [{required: true, message: '请选择软件版本', trigger: 'blur'}]},
       uploadFile: '',
       isDownload: false,
       downloadUrl: '',
-      fileName: ''
+      fileName: '',
     }
   },
 
   created() {
-   this.getList()
+    this.getList()
   },
-  watch: {
-    'listQuery.factoryName': function(e) {
-      if (this.listQuery.factoryName !== '' && this.listQuery.deviceType !== '') {
-        const getModel = { factoryName: this.listQuery.factoryName, productType: this.listQuery.deviceType }
-        queryProductModelList(getModel).then(res => {
-          if (res.data.success) {
-            if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
-              this.hardVersion.length = 0
-              this.productModel.length = 0
-              this.hard.length = 0
-              this.listQuery.hardVersion = ''
-              this.listQuery.productModel = ''
-              const data = res.data.data.infoList
-              data.forEach((item, index) => {
-                this.hard.push(item.hardVersions)
-                this.productModel.push({ value: item.productModel, label: item.productModel })
-              })
-              this.listQuery.productModel = this.productModel[0].label
-              if (this.hard.length !== 0 && this.hard[0].length !== 0) {
-                this.hard[0].forEach((item, index) => {
-                  this.hardVersion.push({ value: item, label: item })
-                })
-                this.listQuery.hardVersion = this.hardVersion[0].label
-              } else {
-                this.hardVersion.length = 0
-              }
-            } else {
-              this.listQuery.hardVersion = ''
-              this.listQuery.productModel = ''
-              this.hard.length = 0
-              this.hardVersion.length = 0
-              this.productModel.length = 0
-            }
-          }
+  /* watch: {
+     'listQuery.factoryName': function (e) {
+       if (this.listQuery.factoryName !== '' && this.listQuery.deviceType !== '') {
+         const getModel = {factoryName: this.listQuery.factoryName, productType: this.listQuery.deviceType}
+         queryProductModelList(getModel).then(res => {
+           if (res.data.success) {
+             if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
+               this.hardVersion.length = 0
+               this.productModel.length = 0
+               this.hard.length = 0
+               this.listQuery.hardVersion = ''
+               this.listQuery.productModel = ''
+               const data = res.data.data.infoList
+               data.forEach((item, index) => {
+                 this.hard.push(item.hardVersions)
+                 this.productModel.push({value: item.productModel, label: item.productModel})
+               })
+               this.listQuery.productModel = this.productModel[0].label
+               if (this.hard.length !== 0 && this.hard[0].length !== 0) {
+                 this.hard[0].forEach((item, index) => {
+                   this.hardVersion.push({value: item, label: item})
+                 })
+                 this.listQuery.hardVersion = this.hardVersion[0].label
+               } else {
+                 this.hardVersion.length = 0
+               }
+             } else {
+               this.listQuery.hardVersion = ''
+               this.listQuery.productModel = ''
+               this.hard.length = 0
+               this.hardVersion.length = 0
+               this.productModel.length = 0
+             }
+           }
 
-        })
-      }
-    },
-    'listQuery.deviceType': function(e) {
-      if (this.listQuery.factoryName !== '' && this.listQuery.deviceType !== '') {
-        const getModel = { factoryName: this.listQuery.factoryName, productType: this.listQuery.deviceType }
-        queryProductModelList(getModel).then(res => {
-          if (res.data.success) {
-            if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
-              this.hardVersion.length = 0
-              this.productModel.length = 0
-              this.hard.length = 0
-              this.listQuery.hardVersion = ''
-              this.listQuery.productModel = ''
-              const data = res.data.data.infoList
-              data.forEach((item, index) => {
-                this.hard.push(item.hardVersions)
-                this.productModel.push({ value: item.productModel, label: item.productModel })
-              })
-              this.listQuery.productModel = this.productModel[0].label
-              if (this.hard.length !== 0 && this.hard[0].length !== 0) {
-                this.hard[0].forEach((item, index) => {
-                  this.hardVersion.push({ value: item, label: item })
-                })
-                this.listQuery.hardVersion = this.hardVersion[0].label
-              } else {
-                this.hardVersion.length = 0
-              }
-            } else {
-              this.listQuery.hardVersion = ''
-              this.listQuery.productModel = ''
-              this.hard.length = 0
-              this.hardVersion.length = 0
-              this.productModel.length = 0
-            }
-          }
-        })
-      }
-    },
-    'listQuery.productModel': function(e) {
-      if (this.listQuery.factoryName !== '' && this.listQuery.deviceType !== '') {
-        if (this.hard.length !== 0 && this.productModel.length !== 0) {
-          this.hardVersion.length = 0
-          this.listQuery.hardVersion = ''
-          var modelIndex = ''
-          this.productModel.forEach((item, index) => {
-            if (this.listQuery.productModel === item.value) {
-              modelIndex = index
-            }
-          })
-          this.hard[modelIndex].forEach((item, index) => {
-            this.hardVersion.push({ value: item, label: item })
-          })
-          this.listQuery.hardVersion = this.hardVersion[0].value
-        } else {
-          this.hardVersion.length = 0
-        }
-      }
-    },
-    'mainTemp.factoryName': function(e) {
-      if (this.mainTemp.factoryName !== '' && this.mainTemp.deviceType !== '') {
-        const getModel = { factoryName: this.mainTemp.factoryName, productType: this.mainTemp.deviceType }
-        queryProductModelList(getModel).then(res => {
-          if (res.data.success) {
-            if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
-              this.tempHardVersion.length = 0
-              this.tempProductModel.length = 0
-              this.tempHard.length = 0
-              this.mainTemp.hardVersion = ''
-              this.mainTemp.productModel = ''
+         })
+       }
+     },
+     'listQuery.deviceType': function (e) {
+       if (this.listQuery.factoryName !== '' && this.listQuery.deviceType !== '') {
+         const getModel = {factoryName: this.listQuery.factoryName, productType: this.listQuery.deviceType}
+         queryProductModelList(getModel).then(res => {
+           if (res.data.success) {
+             if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
+               this.hardVersion.length = 0
+               this.productModel.length = 0
+               this.hard.length = 0
+               this.listQuery.hardVersion = ''
+               this.listQuery.productModel = ''
+               const data = res.data.data.infoList
+               data.forEach((item, index) => {
+                 this.hard.push(item.hardVersions)
+                 this.productModel.push({value: item.productModel, label: item.productModel})
+               })
+               this.listQuery.productModel = this.productModel[0].label
+               if (this.hard.length !== 0 && this.hard[0].length !== 0) {
+                 this.hard[0].forEach((item, index) => {
+                   this.hardVersion.push({value: item, label: item})
+                 })
+                 this.listQuery.hardVersion = this.hardVersion[0].label
+               } else {
+                 this.hardVersion.length = 0
+               }
+             } else {
+               this.listQuery.hardVersion = ''
+               this.listQuery.productModel = ''
+               this.hard.length = 0
+               this.hardVersion.length = 0
+               this.productModel.length = 0
+             }
+           }
+         })
+       }
+     },
+     'listQuery.productModel': function (e) {
+       if (this.listQuery.factoryName !== '' && this.listQuery.deviceType !== '') {
+         if (this.hard.length !== 0 && this.productModel.length !== 0) {
+           this.hardVersion.length = 0
+           this.listQuery.hardVersion = ''
+           var modelIndex = ''
+           this.productModel.forEach((item, index) => {
+             if (this.listQuery.productModel === item.value) {
+               modelIndex = index
+             }
+           })
+           this.hard[modelIndex].forEach((item, index) => {
+             this.hardVersion.push({value: item, label: item})
+           })
+           this.listQuery.hardVersion = this.hardVersion[0].value
+         } else {
+           this.hardVersion.length = 0
+         }
+       }
+     },
+     'mainTemp.factoryName': function (e) {
+       if (this.mainTemp.factoryName !== '' && this.mainTemp.deviceType !== '') {
+         const getModel = {factoryName: this.mainTemp.factoryName, productType: this.mainTemp.deviceType}
+         queryProductModelList(getModel).then(res => {
+           if (res.data.success) {
+             if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
+               this.tempHardVersion.length = 0
+               this.tempProductModel.length = 0
+               this.tempHard.length = 0
+               this.mainTemp.hardVersion = ''
+               this.mainTemp.productModel = ''
 
-              var data = res.data.data.infoList
-              data.forEach((item, index) => {
-                this.tempHard.push(item.hardVersions)
-                this.tempProductKey.push(item.productKey)
-                this.tempProductModel.push({ value: item.productModel, label: item.productModel })
-              })
-              this.mainTemp.productModel = this.tempProductModel[0].label
-              if (this.tempHard.length !== 0 && this.tempHard[0].length !== 0) {
-                this.tempHard[0].forEach((item, index) => {
-                  this.tempHardVersion.push({ value: item, label: item })
-                })
-              }
-            } else {
-              this.mainTemp.productModel = ''
-              this.mainTemp.hardVersion = ''
-              this.tempHard.length = 0
-              this.tempProductKey.length = 0
-              this.tempHardVersion.length = 0
-              this.tempProductModel.length = 0
-            }
-          }
+               var data = res.data.data.infoList
+               data.forEach((item, index) => {
+                 this.tempHard.push(item.hardVersions)
+                 this.tempProductKey.push(item.productKey)
+                 this.tempProductModel.push({value: item.productModel, label: item.productModel})
+               })
+               this.mainTemp.productModel = this.tempProductModel[0].label
+               if (this.tempHard.length !== 0 && this.tempHard[0].length !== 0) {
+                 this.tempHard[0].forEach((item, index) => {
+                   this.tempHardVersion.push({value: item, label: item})
+                 })
+               }
+             } else {
+               this.mainTemp.productModel = ''
+               this.mainTemp.hardVersion = ''
+               this.tempHard.length = 0
+               this.tempProductKey.length = 0
+               this.tempHardVersion.length = 0
+               this.tempProductModel.length = 0
+             }
+           }
 
-        })
-      }
-    },
-    'mainTemp.deviceType': function(e) {
-      if (this.mainTemp.factoryName !== '' && this.mainTemp.deviceType !== '') {
-        const getModel = { factoryName: this.mainTemp.factoryName, productType: this.mainTemp.deviceType }
-        queryProductModelList(getModel).then(res => {
-          if (res.data.success) {
-            if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
-              this.tempHardVersion.length = 0
-              this.tempProductModel.length = 0
-              this.tempHard.length = 0
-              this.mainTemp.hardVersion = ''
-              this.mainTemp.productModel = ''
+         })
+       }
+     },
+     'mainTemp.deviceType': function (e) {
+       if (this.mainTemp.factoryName !== '' && this.mainTemp.deviceType !== '') {
+         const getModel = {factoryName: this.mainTemp.factoryName, productType: this.mainTemp.deviceType}
+         queryProductModelList(getModel).then(res => {
+           if (res.data.success) {
+             if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
+               this.tempHardVersion.length = 0
+               this.tempProductModel.length = 0
+               this.tempHard.length = 0
+               this.mainTemp.hardVersion = ''
+               this.mainTemp.productModel = ''
 
-              const data = res.data.data.infoList
-              data.forEach((item, index) => {
-                this.tempProductKey.push(item.productKey)
-                this.tempHard.push(item.hardVersions)
-                this.tempProductModel.push({ value: item.productModel, label: item.productModel })
-              })
+               const data = res.data.data.infoList
+               data.forEach((item, index) => {
+                 this.tempProductKey.push(item.productKey)
+                 this.tempHard.push(item.hardVersions)
+                 this.tempProductModel.push({value: item.productModel, label: item.productModel})
+               })
 
-              this.mainTemp.productModel = this.tempProductModel[0].label
-              if (this.tempHard.length !== 0 && this.tempHard[0].length !== 0) {
-                this.tempHard[0].forEach((item, index) => {
-                  this.tempHardVersion.push({ value: item, label: item })
-                })
-              }
+               this.mainTemp.productModel = this.tempProductModel[0].label
+               if (this.tempHard.length !== 0 && this.tempHard[0].length !== 0) {
+                 this.tempHard[0].forEach((item, index) => {
+                   this.tempHardVersion.push({value: item, label: item})
+                 })
+               }
 
-            } else {
-              this.mainTemp.productModel = ''
-              this.mainTemp.hardVersion = ''
-              this.tempHard.length = 0
-              this.tempProductKey.length = 0
-              this.tempHardVersion.length = 0
-              this.tempProductModel.length = 0
-            }
-          }
+             } else {
+               this.mainTemp.productModel = ''
+               this.mainTemp.hardVersion = ''
+               this.tempHard.length = 0
+               this.tempProductKey.length = 0
+               this.tempHardVersion.length = 0
+               this.tempProductModel.length = 0
+             }
+           }
 
-        })
-      }
-    },
-    'mainTemp.productModel': function(e) {
-      if (this.mainTemp.factoryName !== '' && this.mainTemp.deviceType !== '') {
-        if (this.tempHard.length !== 0 && this.tempProductModel.length !== 0) {
-          this.tempHardVersion.length = 0
-          this.mainTemp.hardVersion = ''
-          var modelIndex = ''
-          this.tempProductModel.forEach((item, index) => {
-            if (this.mainTemp.productModel === item.value) {
-              modelIndex = index
-            }
-          })
+         })
+       }
+     },
+     'mainTemp.productModel': function (e) {
+       if (this.mainTemp.factoryName !== '' && this.mainTemp.deviceType !== '') {
+         if (this.tempHard.length !== 0 && this.tempProductModel.length !== 0) {
+           this.tempHardVersion.length = 0
+           this.mainTemp.hardVersion = ''
+           var modelIndex = ''
+           this.tempProductModel.forEach((item, index) => {
+             if (this.mainTemp.productModel === item.value) {
+               modelIndex = index
+             }
+           })
 
-          this.mainTemp.productKey = this.tempProductKey[modelIndex]
-          this.tempHard[modelIndex].forEach((item, index) => {
-            this.tempHardVersion.push({ value: item, label: item })
-          })
-          this.mainTemp.hardVersion = this.tempHardVersion[0].value
-        }
+           this.mainTemp.productKey = this.tempProductKey[modelIndex]
+           this.tempHard[modelIndex].forEach((item, index) => {
+             this.tempHardVersion.push({value: item, label: item})
+           })
+           this.mainTemp.hardVersion = this.tempHardVersion[0].value
+         }
 
-      }
+       }
 
-    }
-  },
+     }
+   },*/
 
   methods: {
-
+    //查询参数可以为空，查询设备列表
     getList() {
       this.listLoading = true
-      getFactoryNameList().then(res => {
+      if (this.listQuery.productModel === undefined){
+        this.listQuery.hardVersion = undefined
+      }
+      getDevice(this.listQuery).then(res => {
         if (res.data.success) {
           if (res.data.data.length !== 0) {
-            const data = res.data.data
-            data.forEach((item, index) => {
-              this.factoryName.push({ value: item, label: item })
-            })
-
-            const product = {
-              factoryName: this.listQuery.factoryName,
-              productType: this.listQuery.deviceType
-            }
-            queryProductModelList(product).then(res => {
-              this.hardVersion.length = 0
-              this.productModel.length = 0
-              this.hard.length = 0
-              if (res.data.success) {
-                if (res.data.data.length !== 0 && res.data.data.infoList.length !== 0) {
-                  var productData = res.data.data.infoList
-                  var modelIndex = ''
-                  productData.forEach((item, index) => {
-                    if (item.hardVersions.length !== 0) {
-                      this.hard.push(item.hardVersions)
-                    }
-                    this.productModel.push({ value: item.productModel, label: item.productModel })
-                  })
-                  this.productModel.forEach((item, index) => {
-                    if (this.listQuery.productModel === item.value) {
-                      modelIndex = index
-                    }
-                  })
-                  if (this.hard.length !== 0 && this.hard[0].length !== 0) {
-                    this.hard[modelIndex].forEach((item, index) => {
-                      this.hardVersion.push({ value: item, label: item })
-                    })
-                  }
-                  //获取设备
-                  getDevice(this.listQuery).then(res => {
-                    if (res.data.success) {
-                      if (res.data.data.length !== 0) {
-                        var device = res.data.data
-                        this.list = device.records
-                        this.total = device.total
-                        this.listLoading = false
-                      } else {
-                        this.listLoading = false
-                        this.$message({
-                          showClose: true,
-                          message: '获取设备失败',
-                          type: 'error'
-                        })
-                      }
-                    } else {
-                      this.listLoading = false
-                      this.$message({
-                        showClose: true,
-                        message: '获取设备失败',
-                        type: 'error'
-                      })
-                    }
-                  })
-                } else {
-                  this.listLoading = false
-                  this.$message({
-                    showClose: true,
-                    message: '未找到产品信息，查询设备失败！',
-                    type: 'error'
-                  })
-                }
-              } else {
-                this.listLoading = false
-                this.$message({
-                  showClose: true,
-                  message: '未找到产品信息，查询设备失败！',
-                  type: 'error'
-                })
-              }
-            })
-          } else {
-            this.listLoading = false
-            this.$message({
-              showClose: true,
-              message: '未找到任何厂商，无法查询设备！',
-              type: 'error'
-            })
+            var device = res.data.data
+            this.list = device.records
+            this.total = device.total
           }
         } else {
-          this.listLoading = false
           this.$message({
             showClose: true,
-            message: res.data.message,
+            message: '获取设备失败',
             type: 'error'
           })
         }
-
       })
+      this.listLoading = false
     },
 
-    getFactoryNameList() {
+//获取产品型号productModel 和硬件版本
+    getProduct() {
+      this.listProductModel = [
+        {
+          label: '全部',
+          value: undefined
+        }
+      ]
+      if (this.listQuery.factoryName !== undefined && this.listQuery.deviceType !== undefined) {
+        const product = {
+          factoryName: this.listQuery.factoryName,
+          productType: this.listQuery.deviceType
+        }
+        queryProductModelList(product).then(res => {
+          if (res.data.success && res.data.data.length !== 0) {
+            if (res.data.data.infoList.length !== 0) {
+              var productData = res.data.data.infoList
+              productData.forEach((item, index) => {
+                if (item.hardVersions.length !== 0) {
+                  this.hard.push(item.hardVersions)
+                }
+                this.listProductModel.push({value: item.productModel, label: item.productModel})
+              })
+            }
+          }
+        })
+      }else {
+        this.$notify({
+          title: '警告',
+          message: '请先选择设备类型和厂商！',
+          type: 'warning',
+          duration: 2000
+        });
+      }
+    },
+    getHard(){
+      this.listHardVersion.length = 0
+      if (this.listQuery.productModel !== undefined) {
+        this.listHardVersion = [
+          {
+            label: '全部',
+            value: undefined
+          }
+        ]
+        let modelIndex = ''
+        this.listProductModel.forEach((item, index) => {
+          if (this.listQuery.productModel === item.value) {
+            modelIndex = index - 1
+          }
+        })
+        if (this.hard.length !== 0 && this.hard[modelIndex].length !== 0) {
+          this.hard[modelIndex].forEach((item, index) => {
+            this.listHardVersion.push({value: item, label: item})
+          })
+        }
+      }else {
+        console.log(this.listHardVersion)
+        this.listHardVersion = [
+          {
+            label: '全部',
+            value: undefined
+          }
+        ]
+        this.hard = []
+      }
+    },
+    getFactoryName() {
+      this.tempFactoryName = []
+      this.listFactoryName = [
+        {
+          label: '全部',
+          value: undefined
+        }
+      ]
       getFactoryNameList().then(res => {
         if (res.data.success) {
           if (res.data.data.length !== 0) {
             var data = res.data.data
-            data.forEach((item, index) => {
-              this.tempFactoryName.push({ value: item, label: item })
-            })
+            if (this.mainDialogVisible) {
+              data.forEach((item, index) => {
+                this.tempFactoryName.push({value: item, label: item})
+              })
+            }else {
+              data.forEach((item, index) => {
+                this.listFactoryName.push({value: item, label: item})
+              })
+            }
+
           } else {
-            this.$message({
-              showClose: true,
-              message: '不存在厂商',
-              type: 'error'
-            })
+            console.error(res.data.message)
           }
         } else {
           this.$message({
@@ -879,15 +946,13 @@ export default {
       })
 
     },
-
 
     //新增主设备
     handleMainCreate() {
       this.dialogStatus = 'mainCreate'
       this.isSlave = false
-      this.tempFactoryName = []
       this.resetMainTemp()
-      this.getFactoryNameList()
+      this.getFactoryName()
       this.mainDialogVisible = true
       this.$nextTick(() => {
         this.$refs['mainDataForm'].clearValidate()
@@ -897,9 +962,8 @@ export default {
     handleSlaveCreate() {
       this.dialogStatus = 'slaveCreate'
       this.isSlave = true
-      this.tempFactoryName = []
       this.resetMainTemp()
-      this.getFactoryNameList()
+      this.getFactoryName()
       this.mainDialogVisible = true
       this.$nextTick(() => {
         this.$refs['mainDataForm'].clearValidate()
@@ -912,7 +976,7 @@ export default {
       if (row.mainDeviceName !== '') {
         this.isSlave = true
       }
-      this.tempFactoryName = []
+
       this.mainTemp = Object.assign({}, row)
       this.deviceType.forEach((item, index) => {
         if (item.value.toString() === row.deviceType) {
@@ -920,7 +984,7 @@ export default {
         }
       })
       this.mainDialogVisible = true
-      this.getFactoryNameList()
+      this.getFactoryName()
       this.$nextTick(() => {
         this.$refs['mainDataForm'].clearValidate()
       })
@@ -932,39 +996,12 @@ export default {
             const message = res.data.message
             if (res.data.success) {
               this.mainDialogVisible = false
-              //新建成功后，直接搜索该设备,并且同步搜索框
-
-              var query = {
-                current: this.listQuery.current,
-                size: this.listQuery.size,
-                productModel: this.mainTemp.productModel,
-                hardVersion: this.mainTemp.hardVersion,
-                factoryName: this.mainTemp.factoryName,
-                deviceType: this.mainTemp.deviceType
-              }
               this.resetMainTemp()
               this.$notify({
                 title: '成功',
                 message: message,
                 type: 'success',
                 duration: 5000
-              })
-              getDevice(query).then(res => {
-                if (res.data.success) {
-                  if (res.data.data.length !== 0) {
-                    var device = res.data.data
-                    this.list = device.records
-                    this.total = device.total
-                    this.listLoading = false
-                  }
-                } else {
-                  this.listLoading = false
-                  this.$message({
-                    showClose: true,
-                    message: res.data.message,
-                    type: 'error'
-                  })
-                }
               })
             } else {
               this.$notify.error({
@@ -985,38 +1022,12 @@ export default {
             const message = res.data.message
             if (res.data.success) {
               this.mainDialogVisible = false
-              //更新成功后，直接搜索该设备
-              var query = {
-                current: this.listQuery.current,
-                size: this.listQuery.size,
-                productModel: this.mainTemp.productModel,
-                hardVersion: this.mainTemp.hardVersion,
-                factoryName: this.mainTemp.factoryName,
-                deviceType: this.mainTemp.deviceType
-              }
               this.resetMainTemp()
               this.$notify({
                 title: '成功',
                 message: message,
                 type: 'success',
                 duration: 5000
-              })
-              getDevice(query).then(res => {
-                if (res.data.success) {
-                  if (res.data.data.length !== 0) {
-                    var device = res.data.data
-                    this.list = device.records
-                    this.total = device.total
-                    this.listLoading = false
-                  }
-                } else {
-                  this.listLoading = false
-                  this.$message({
-                    showClose: true,
-                    message: res.data.message,
-                    type: 'error'
-                  })
-                }
               })
             } else {
               this.$notify.error({
@@ -1031,38 +1042,38 @@ export default {
       })
     },
 
-    // 指令
-    handleCommand(index, row) {
-      this.cmdLoading = true
-      this.dialogStatus = 'command'
-      this.commandVisible = true
-      this.commandListQuery.deviceName = row.deviceName
-      this.getCommandList(this.commandListQuery)
-    },
-    getCommandList(data) {
-      cmdPage(data).then(res => {
-        this.listLoading = false
-        if (res.data.success) {
-          this.cmdLoading = false
+    // 指令（三期）
+    /*    handleCommand(index, row) {
+          this.cmdLoading = true
+          this.dialogStatus = 'command'
+          this.commandVisible = true
+          this.commandListQuery.deviceName = row.deviceName
+          this.getCommandList(this.commandListQuery)
+        },
+        getCommandList(data) {
+          cmdPage(data).then(res => {
+            this.listLoading = false
+            if (res.data.success) {
+              this.cmdLoading = false
 
-          this.commandList = res.data.data.records
-          this.commandTotal = res.data.data.total
-        } else {
-          this.cmdLoading = false
-          this.$message({
-            showClose: true,
-            message: res.data.message,
-            type: 'error'
+              this.commandList = res.data.data.records
+              this.commandTotal = res.data.data.total
+            } else {
+              this.cmdLoading = false
+              this.$message({
+                showClose: true,
+                message: res.data.message,
+                type: 'error'
+              })
+            }
           })
-        }
-      })
-    },
+        },*/
 
     //下载模板
     downloadExcel() {
-      var query = { fileName: 'upload/exampleExcel.xlsx' }
+      var query = {fileName: 'upload/exampleExcel.xlsx'}
       downloadFile(query).then(res => {
-        const blob = new Blob([res.data], { type: 'application/vnd.ms-excel;charset=utf-8' })
+        const blob = new Blob([res.data], {type: 'application/vnd.ms-excel;charset=utf-8'})
         const fileName = 'exampleExcel.xlsx'
         if ('download' in document.createElement('a')) { // 非IE下载
           const elink = document.createElement('a')
@@ -1088,11 +1099,10 @@ export default {
       this.$refs.upload.clearFiles()
     },
     handleUploadMain() {
-      this.tempFactoryName = []
       this.resetMainTemp()
       this.isDownload = false
       this.mainUploadDialogVisible = true
-      this.getFactoryNameList()
+      this.getFactoryName()
       this.$nextTick(() => {
         this.$refs['uploadRef'].clearValidate()
       })
@@ -1144,9 +1154,9 @@ export default {
     },
     downloadResult() {
       if (this.downloadUrl) {
-        const query = { fileName: this.downloadUrl }
+        const query = {fileName: this.downloadUrl}
         downloadFile(query).then(res => {
-          const blob = new Blob([res.data], { type: 'application/vnd.ms-excel;charset=utf-8' })
+          const blob = new Blob([res.data], {type: 'application/vnd.ms-excel;charset=utf-8'})
           const fileName = this.fileName
           if ('download' in document.createElement('a')) { // 非IE下载
             const elink = document.createElement('a')
@@ -1206,7 +1216,7 @@ export default {
               if (res.data.data.length !== 0) {
                 var data = res.data.data
                 data.forEach((item, value) => {
-                  this.softVersion.push({ softVersion: item.softVersion, objectId: item.objectId })
+                  this.softVersion.push({softVersion: item.softVersion, objectId: item.objectId})
                 })
               }
             } else {
@@ -1249,55 +1259,22 @@ export default {
       })
 
     },
+
+    //新建OTA任务
+    handleOtaCreate(){
+
+    },
+
 //清除表单
     resetMainTemp() {
-      this.mainTemp.deviceName = ''
-      this.mainTemp.deviceType = ''
-      this.mainTemp.factoryName = ''
-      this.mainTemp.hardVersion = ''
-      this.mainTemp.softVersion = ''
-      this.mainTemp.productModel = ''
-      this.mainTemp.mainDeviceName = ''
-      this.mainTemp.productKey = ''
-    },
-//搜索
-    search() {
-      this.listLoading = true
-      if (this.listQuery.productModel !== '' && this.listQuery.hardVersion !== '' && this.listQuery.factoryName !== '' && this.listQuery.deviceType !== '') {
-        getDevice(this.listQuery).then(res => {
-          if (res.data.success) {
-            this.listLoading = false
-            if (res.data.data.length !== 0) {
-              var device = res.data.data
-              this.list = device.records
-              this.total = device.total
-              this.listLoading = false
-            } else {
-              this.$message({
-                showClose: true,
-                message: res.data.message,
-                type: 'error'
-              })
-            }
-          } else {
-            this.listLoading = false
-            this.$message({
-              showClose: true,
-              message: res.data.message,
-              type: 'error'
-            })
-          }
-        })
-      } else {
-        this.listLoading = false
-        this.$notify({
-          title: '失败',
-          message: '搜索参数不能为空',
-          type: 'error',
-          duration: 5000
-        })
-      }
-
+      this.mainTemp.deviceName = undefined
+      this.mainTemp.deviceType = undefined
+      this.mainTemp.factoryName = undefined
+      this.mainTemp.hardVersion = undefined
+      this.mainTemp.softVersion = undefined
+      this.mainTemp.productModel = undefined
+      this.mainTemp.mainDeviceName = undefined
+      this.mainTemp.productKey = undefined
     },
 
     //删除
@@ -1320,16 +1297,18 @@ export default {
     },
     handleDetail(index, row) {
       console.log(row)
-      const { href } = this.$router.resolve({
+      const {href} = this.$router.resolve({
         name: 'Info',
-        path:'/info',
-        query:{
-          deviceId : row.deviceId,
-          deviceName : row.deviceName
+        path: '/info',
+        query: {
+          deviceName: row.deviceName,
+          factoryName: row.factoryName,
+          deviceType: row.deviceType,
+          hardVersion: row.hardVersion,
+          productModel: row.productModel,
         }
       })
       window.open(href, '_blank')
-
     }
   }
 }

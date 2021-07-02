@@ -146,6 +146,14 @@ export function otaSend(data) {
     data
   })
 }
+//OTA任务导出表格
+export function exportExcel(data) {
+  return request({
+    url: 'task/outputTaskDetail',
+    method: 'post',
+    data
+  })
+}
 
 //获取所有硬件
 export function queryHardVersion(data) {

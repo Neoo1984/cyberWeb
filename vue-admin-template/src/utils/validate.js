@@ -28,3 +28,17 @@ export function isEmail (s) {
 export function validPhone (s) {
   return /^1[345789][0-9]\d{8}$/.test(s)
 }
+
+/**
+ * 手机号
+ */
+export const validatePhone = (rule, value, callback) => {
+  const phone = /^1[3456789]\d{9}$/
+  if (!value) {
+    callback(new Error('请输入手机号'))
+  } else if (!phone.test(value)) {
+    callback(new Error('请输入正确的手机号'));
+  } else {
+    callback()
+  }
+}

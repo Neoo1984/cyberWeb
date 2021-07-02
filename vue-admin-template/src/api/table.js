@@ -39,9 +39,21 @@ export function softList(data) {
     data
   })
 }
-export function deleteLine(name) {
+//OTA列表
+export function getOtaList(data) {
   return request({
-    url: `/vue-admin-template/table/list/${name}`,
-    method: 'delete',
+    url: '/task/pageInfo',
+    method: 'post',
+    data
   })
 }
+//OTA详情
+export function getOtaDetail(data) {
+  return request({
+    url: `task/pageTaskDetail`,
+    method: 'post',
+    data
+  })
+}
+
+

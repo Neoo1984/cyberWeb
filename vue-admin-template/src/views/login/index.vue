@@ -97,13 +97,7 @@ export default {
         callback()
       }
     }
-    const validateMail = (rule, value, callback) => {
-      if (!isEmail(value)) {
-        callback(new Error('邮箱格式错误'))
-      } else {
-        callback()
-      }
-    }
+
     let Base64 = require('js-base64').Base64;
     return {
       title: "注册",

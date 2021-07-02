@@ -3,17 +3,85 @@
 * */
 export const deviceType = [
   {
+    label: '全部',
+    value: undefined
+  },
+  {
     label: '电池',
-    value: 1
+    value: "1"
   },
   {
     label: '换电柜',
-    value: 2
+    value: "2"
   },
   {
     label: '两轮车',
-    value: 3
+    value: "3"
   }
+]
+/*
+* 设备类型
+* */
+export const tempDeviceType = [
+  {
+    label: '电池',
+    value: "1"
+  },
+  {
+    label: '换电柜',
+    value: "2"
+  },
+  {
+    label: '两轮车',
+    value: "3"
+  }
+]
+/*
+* 用户角色
+* */
+export const userRole = [
+  {
+    label: '超级管理员',
+    value: '1'
+  },
+  {
+    label: '一般管理员',
+    value: '2'
+  },
+  {
+    label: '用户',
+    value: '3'
+  }
+]
+/*
+* 设备是否在线
+* */
+export const isOnline = [
+  {
+    label: '全部',
+    value: undefined
+  },
+  {
+    label: '在线',
+    value: '1'
+  },
+  {
+    label: '离线',
+    value: '0'
+  },
+]
+/*
+* 用户是否删除
+* */
+export const isDelete = [
+  {
+    label: '已注销',
+    value: '1'
+  },
+  {
+    label: '正常',
+    value: '0'
+  },
 ]
 /*
 * 产品类型，同设备类型
@@ -72,6 +140,51 @@ export const splitLength = [
   {
     label: 0,
     value: 0
+  },
+]
+/*
+OTA状态
+*/
+export const otaStatus= [
+  {
+    value: '1',
+    label: 'ota指令下发中'
+  },
+  {
+    value: '2',
+    label: 'ota指令下发成功'
+  },
+  {
+    value: '3',
+    label: '升级包下载中'
+  },
+  {
+    value: '4',
+    label: '升级包下载成功'
+  },
+  {
+    value: '5',
+    label: '升级包下载失败'
+  },
+  {
+    value: '6',
+    label: '设备固件更新中'
+  },
+  {
+    value: '7',
+    label: '设备固件更新失败'
+  },
+  {
+    value: '8',
+    label: '设备固件更新部分成功'
+  },
+  {
+    value: '9',
+    label: '设备固件更新成功'
+  },
+  {
+    value: '10',
+    label: 'ota超时'
   },
 ]
 

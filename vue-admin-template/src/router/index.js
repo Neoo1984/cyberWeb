@@ -202,44 +202,44 @@ export const constantRoutes = [
           {
             path: 'version',
             component: () => import('@/views/sub/battery/item/factory/index'),
-            name: 'Item',
+            name: 'FactoryVersion',
             meta: { title: '厂家版本',state:'2' }
           },
           {
             path: 'bms',
             component: () => import('@/views/sub/battery/item/bmsCode/index'),
-            name: 'Item',
+            name: 'Bms',
             meta: { title: 'BMS编码',state:'2' }
           },
           {
             path: 'batteryCode',
             component: () => import('@/views/sub/battery/item/batteryCode/index'),
-            name: 'Item',
+            name: 'BatteryCode',
             meta: { title: '电池编码',state:'2' }
           },
           {
             path: 'soc',
             component: () => import('@/views/sub/battery/item/soc/index'),
-            name: 'Item',
+            name: 'Soc',
             meta: { title: 'soc',state:'2' }
           },
           {
             path: 'volState',
             component: () => import('@/views/sub/battery/item/volState/index'),
-            name: 'Item',
+            name: 'volState',
             meta: { title: '组电状态',state:'2' }
           },
           {
             path: 'singleVol',
             component: () => import('@/views/sub/battery/item/singleVol/index'),
-            name: 'Item',
+            name: 'SingleVol',
             meta: { title: '单体电压',state:'2' }
           },
           ]
 
 
   },
-  {
+  /*{
     path: '/doTest',
     redirect: '/doTest',
     component: SubLayout,
@@ -251,7 +251,7 @@ export const constantRoutes = [
         meta: { title: 'Do测试', state: '2' }
       }
     ]
-  },
+  },*/
   {
     path: '/diTest',
     redirect: '/diTest',
@@ -266,7 +266,7 @@ export const constantRoutes = [
     ]
   },
 
-  {
+  /*{
     path: '/autoControl',
     redirect: '/autoControl',
     component: SubLayout,
@@ -291,7 +291,7 @@ export const constantRoutes = [
         meta: { title: '换电柜设置', state: '2' }
       }
     ]
-  },
+  },*/
   {
     path: '/warning',
     redirect: '/warning',

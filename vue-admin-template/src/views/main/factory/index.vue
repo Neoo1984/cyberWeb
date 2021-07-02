@@ -10,7 +10,7 @@
       </el-form-item>
 
       <el-button type="primary" @click="search" icon="el-icon-search" size="small">查询</el-button>
-<!--      <el-button type="primary" @click="clearSearch" icon="el-icon-refresh-left" size="small">重置查询</el-button>-->
+      <el-button type="primary" @click="clearSearch" icon="el-icon-refresh-left" size="small">重置查询</el-button>
       <el-button type="primary" @click="handleCreate" icon="el-icon-plus" size="small">新增</el-button>
     </el-form>
     <el-table
@@ -140,10 +140,20 @@ export default {
     getList() {
       this.listLoading = true
       getFactoryList(this.listQuery).then(response => {
-        const data = response.data.data
-        this.list = data.records
-        this.total = data.total
-        this.listLoading = false;
+        if (response.data.data !==null){
+          const data = response.data.data
+          this.list = data.records
+          this.total = data.total
+          this.listLoading = false;
+        }else {
+          this.listLoading = false
+          this.$message({
+            showClose: true,
+            message: '获取失败!',
+            type: 'error'
+          })
+        }
+
       })
     },
     resetTemp() {
@@ -258,6 +268,7 @@ export default {
     clearSearch() {
       this.listQuery.factoryName = ""
       this.listQuery.address = ""
+      this.getList()
     }
   }
 }

@@ -137,7 +137,7 @@ export default {
       renderIsOnline:renderIsOnline,
       renderOtaStatus:renderOtaStatus,
       deviceType:global.deviceType,
-      productModel:global.productType,
+      productModel:[],
       mainTemp: {
         mainDeviceName: '',
         deviceName: '',
@@ -161,6 +161,8 @@ export default {
   },
   created() {
     this.handleStatus()
+    console.log(this.$route.query.deviceName +'111')
+
   },
   methods: {
     // 状态

@@ -2,169 +2,192 @@
   <div class="app-container">
     <el-form :inline="true" class="demo-form-inline" size="small">
       <el-form-item>
-        <el-input v-model="listQuery.tenantName" placeholder="用户名/邮箱/手机" style="width: 200px" class="filter-item"></el-input>
+        <el-input
+          v-model="listQuery.userName"
+          placeholder="用户名/邮箱/手机"
+          style="width: 200px"
+          class="filter-item">
+        </el-input>
       </el-form-item>
-
-      <el-button type="primary" @click="search" icon="el-icon-search" size="small">查询</el-button>
-      <el-button type="primary" @click="handleCreate" icon="el-icon-plus" size="small">新增用户</el-button>
+      <el-button type="primary" icon="el-icon-search" size="small" @click="search">查询</el-button>
+      <el-button type="primary" icon="el-icon-plus" size="small" @click="handleCreate">新增用户</el-button>
     </el-form>
     <el-table
       v-loading="listLoading"
       :data="list"
-      element-loading-text="Loading"
+      element-loading-text="加载中..."
       border
       fit
       highlight-current-row
     >
-      <el-table-column type="index" align="center" label="序号" width="50"></el-table-column>
-      <el-table-column label="商户名称" align="center">
+      <el-table-column label="序号" width="50" align="center">
+      </el-table-column>
+      <el-table-column label="商户" align="center">
         <template slot-scope="scope">
-          {{ scope.row.tenantName }}
+          {{ scope.row.tenantId }}
         </template>
       </el-table-column>
-      <el-table-column label="商户地址" align="center">
+      <el-table-column label="用户名" align="center">
         <template slot-scope="scope">
-          {{ scope.row.address }}
+          {{ scope.row.userName }}
         </template>
       </el-table-column>
-      <el-table-column label="联系人" align="center">
+      <el-table-column label="手机号" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.manager }}</span>
+          {{ scope.row.phoneNum }}
         </template>
       </el-table-column>
-      <el-table-column label="联系人电话" align="center">
+      <el-table-column label="电子邮箱" align="center">
         <template slot-scope="scope">
-          {{ scope.row.mobile }}
+          {{ scope.row.email }}
         </template>
       </el-table-column>
-
-      <el-table-column align="center" label="操作" width="200">
+      <el-table-column label="状态" align="center" :formatter="renderDelete"></el-table-column>
+      <el-table-column label="创建人" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.createUser }}
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" align="center" :formatter="renderCreateTime"></el-table-column>
+      <el-table-column label="更新人" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.updateUser }}
+        </template>
+      </el-table-column>
+      <el-table-column label="更新时间" align="center" :formatter="renderUpdateTime"></el-table-column>
+      <el-table-column align="center" label="操作" width="100">
         <template slot-scope="scope">
           <el-button
             size="mini"
             type="text"
-            @click="handleUpdate(scope.row.$index, scope.row)">编辑
+            @click="handleDetail(scope.row.$index, scope.row)">详情
           </el-button>
           <el-popconfirm
-            confirm-button-text='删除'
-            cancel-button-text='取消'
+            :confirm-button-text= "confirmButtonText"
+            cancel-button-text="取消"
             icon="el-icon-info"
             icon-color="red"
-            title="是否确定删除？"
-            @onConfirm="handleDelete(scope.$index, scope.row)"
+            :title='confirmButtonTitle'
+            @onConfirm="handleOperate(scope.$index, scope.row)"
           >
             <el-button
               style="margin-left: 10px"
               size="mini"
               type="text"
-              slot="reference">删除
+              slot="reference"
+            >{{ scope.row.isDelete ==='0'?'注销':'恢复' }}
             </el-button>
           </el-popconfirm>
 
         </template>
       </el-table-column>
     </el-table>
-    <pagination v-show="total>0" :total="total" :page.sync="listQuery.current" :limit.sync="listQuery.size"
-                @pagination="getList"/>
-
+    <pagination
+      v-show="total>0"
+      :total="total"
+      :page.sync="listQuery.current"
+      :limit.sync="listQuery.size"
+      @pagination="getList"/>
     <el-dialog
       :title="textMap[dialogStatus]"
       :visible.sync="dialogVisible"
-
-      width="60%">
-      <el-form ref="temp"  v-loading="submitLoading" :rules="rules" :model="temp" class="demo-form-inline" :label-position="labelPosition"
-               label-width="100px">
-        <el-form-item label="商户名称" prop="tenantName">
-          <el-input :disabled=disabled v-model="temp.tenantName" placeholder="商户名称" style="width: 80%"
-                    class="filter-item"></el-input>
+      width="60%"
+    >
+      <el-form
+        ref="temp"
+        v-loading="submitLoading"
+        :rules="rules"
+        :model="temp"
+        class="form-inline"
+        :label-position="labelPosition"
+        label-width="100px"
+      >
+        <el-form-item label="用户名称：" prop="userName">
+          <el-input v-model="temp.userName" placeholder="请输入用户名" style="width: 80%" class="filter-item"></el-input>
         </el-form-item>
-        <el-form-item label="商户地址" prop="address">
-          <el-input v-model="temp.address" placeholder="商户地址" style="width: 80%" class="filter-item"></el-input>
+        <el-form-item label="手机号码：" prop="phoneNum">
+          <el-input v-model="temp.phoneNum" placeholder="请输入手机号" style="width:80%"></el-input>
         </el-form-item>
-        <el-form-item label="联系人" prop="manager">
-          <el-input v-model="temp.manager" placeholder="联系人" style="width: 80%" class="filter-item"></el-input>
+        <el-form-item label="邮箱地址：" prop="email">
+          <el-input v-model="temp.email" placeholder="请输入邮箱地址" style="width:80%"></el-input>
         </el-form-item>
-        <el-form-item label="联系人电话" prop="mobile">
-          <el-input v-model="temp.mobile" placeholder="联系人电话" style="width: 80%" class="filter-item"></el-input>
+        <el-form-item label="用户角色：" prop="role">
+          <el-select v-model="temp.userRole" placeholder="请选择用户角色" style="width:80%">
+            <el-option
+              v-for="item in userRole"
+              :key="item.index"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="密码：" prop="password">
+          <el-input type="password" v-model="temp.password" placeholder="请输入密码" style="width:80%"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" :disabled="submitLoading" @click="dialogStatus==='create'?createData():updateData()">确 定</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button :disabled="submitLoading" @click="dialogStatus==='create'?createData():updateData()">提交</el-button>
       </span>
     </el-dialog>
+
   </div>
 </template>
 
 <script>
-import {getStoreList} from "@/api/table";
+import {getFactoryList, getStoreList} from '@/api/table'
 import Pagination from '@/components/Pagination'
-import {createStore, deleteStore, updateStore} from "@/api/operation";
-
+import {createStore, deleteStore, updateStore} from '@/api/operation'
+import {renderDelete, renderTime} from '@/utils'
+import {validatePhone} from "@/utils/validate";
 export default {
   name: 'User',
   components: {Pagination},
   data() {
-    const validatePhone = (rule, value, callback) => {
-      console.log(value)
-      const phone = /^1[3456789]{1}\d{9}$/
-      if (!value) {
-        callback(new Error('请输入手机号'))
-      } else if (!phone.test(value)) {
-        callback(new Error('请输入正确的手机号'));
-      } else {
-        callback()
-      }
-    };
     return {
       list: null,
-      listLoading: true,
-      submitLoading:false,
-      labelPosition: 'right',
+      listLoading: false,
+      dialogVisible: false,
+      submitLoading: false,
       total: 0,
-      disabled: false,
+      labelPosition: 'right',
+      validatePhone:validatePhone,
+      renderDelete: renderDelete,
+      userRole: global.userRole,
+      textMap: {
+        creat: '新增',
+        update: '编辑',
+      },
+      temp: {
+        userName: undefined,
+        phoneNum: undefined,
+        email: undefined,
+        userRole: undefined,
+      },
+      dialogStatus: '',
       listQuery: {
         current: 1,
         size: 20,
-        tenantName: undefined,
-        manager: undefined,
-        address: undefined
+        userType:'1',
+        keyword:undefined
       },
-      dialogVisible: false,
-      textMap: {
-        update: '编辑',
-        create: '新增'
-      },
-      dialogStatus: '',
-      temp: {
-        tenantName: undefined,
-        address: undefined,
-        manager: undefined,
-        mobile: undefined
-      },
-
+      confirmButtonText:'注销',
+      confirmButtonTitle:'是否确认注销？',
       rules: {
-        tenantName: [{required: true, message: '请输入商户名称', trigger: 'blur'}, {
+        userName: [{required: true, message: '请输入用户名称', trigger: 'blur'}, {
           min: 1,
           max: 20,
-          message: '商户名过长',
+          message: '用户名过长',
           trigger: 'blur'
         }],
-        address: [{required: true, message: '请输入商户地址', trigger: 'blur'}, {
+        phoneNum : [{required: true, trigger: 'blur', validator: validatePhone}],
+        email: [{required: true, message: '请输入电子邮箱', trigger: 'blur'}, {
           min: 1,
           max: 20,
-          message: '商户地址过长',
+          message: '邮箱地址错误',
           trigger: 'blur'
-        }],
-        manager: [{required: true, message: '请输入联系人姓名', trigger: 'blur'}, {
-          min: 1,
-          max: 20,
-          message: '联系人姓名过长',
-          trigger: 'blur'
-        }],
-        mobile: [{required: true, trigger: 'blur', validator: validatePhone}]
+        }]
       },
-
     }
   },
   created() {
@@ -177,18 +200,52 @@ export default {
         this.list = response.data.data.records
         this.total = response.data.data.total
         this.listLoading = false
+        this.confirmButtonText = this.list.isDelete === '1' ? '恢复' : '注销'
+        this.confirmButtonTitle = this.list.isDelete === '1' ? '是否确认恢复？' : '是否确认注销？'
       })
     },
-
-    //新增
-    handleCreate() {
-      this.resetTemp();
+    renderCreateTime(row){
+      return renderTime(row.createTime)
+    },
+    renderUpdateTime(row){
+      return renderTime(row.updateTime)
+    },
+    handleDetail(index, row) {
       this.dialogVisible = true
-      this.dialogStatus = 'create'
-      this.disabled = false
+      this.dialogStatus = 'update'
+      this.temp = Object.assign({}, row)
+      this.disabled = true
       this.$nextTick(() => {
         this.$refs['temp'].clearValidate()
       })
+    },
+    handleOperate(index, row) {
+      this.dialogVisible = true
+      this.dialogStatus = 'update'
+      this.temp = Object.assign({}, row)
+      this.disabled = true
+      this.$nextTick(() => {
+        this.$refs['temp'].clearValidate()
+      })
+    },
+    handleCreate() {
+      this.dialogVisible = true
+      this.resetTemp()
+      this.dialogStatus = 'create'
+    },
+    search() {
+      this.getList()
+    },
+    resetTemp() {
+      this.temp.userName = ""
+      this.temp.phoneNum = ""
+      this.temp.email = ""
+    },
+    //重置搜索
+    clearSearch() {
+      this.listQuery.userName = ""
+      this.listQuery.phoneNum = ""
+      this.listQuery.email = ""
     },
     createData() {
       this.$refs['temp'].validate((valid) => {
@@ -216,16 +273,6 @@ export default {
             }
           })
         }
-      })
-    },
-    // 编辑
-    handleUpdate(index, row) {
-      this.dialogVisible = true
-      this.dialogStatus = 'update'
-      this.temp = Object.assign({}, row)
-      this.disabled = true
-      this.$nextTick(() => {
-        this.$refs['temp'].clearValidate()
       })
     },
     updateData() {
@@ -256,8 +303,6 @@ export default {
         }
       })
     },
-
-    //删除
     handleDelete(index, row) {
       deleteStore(row.tenantId).then(res => {
         const message = res.data.message
@@ -275,22 +320,8 @@ export default {
         }
       })
     },
-    //搜索
-    search() {
-      this.getList()
-    },
-    resetTemp() {
-      this.temp.tenantName = ""
-      this.temp.address = ""
-      this.temp.manager = ""
-      this.temp.mobile = ""
-    },
-    //重置搜索
-    clearSearch() {
-      this.listQuery.tenantName = ""
-      this.listQuery.address = ""
-      this.listQuery.manager = ""
-    }
   }
+
 }
+
 </script>
