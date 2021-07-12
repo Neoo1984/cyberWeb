@@ -155,8 +155,8 @@ export function exportExcel(data) {
   })
 }
 
-//获取所有硬件
-export function queryHardVersion(data) {
+//软件包查询
+export function querySoftVersion(data) {
   return request({
     url: 'softupgradepackage/queryHardVersion',
     method: 'post',
@@ -195,4 +195,14 @@ export function deleteSoft(id) {
     params:{objectId:id}
   })
 }
+
+//OTA任务
+export function otaTask(data) {
+  return request({
+    url: `task/createTask`,
+    method: 'post',
+    data
+  })
+}
+
 

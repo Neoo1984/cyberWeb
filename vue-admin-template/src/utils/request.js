@@ -43,14 +43,8 @@ service.interceptors.response.use(response => {
                     })
                 })
                 return Promise.reject(new Error(data.message || 'Error'))
-            } else if (!data.success) {
-                Message({
-                    message: '获取数据失败！',
-                    type: 'error',
-                    duration: 2 * 1000
-                })
+              // TODO userType !== '1' 不让登录
 
-                // TODO userType !== '1' 不让登录
             }
             return response
         } else {

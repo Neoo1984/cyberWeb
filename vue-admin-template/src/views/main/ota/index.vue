@@ -13,7 +13,8 @@
           </el-select>
         </el-form-item>
         <el-form-item label="厂商">
-          <el-select filterable @focus="getFactoryName" @change="getList" v-model="listQuery.factoryName" placeholder="请选择厂商名称"
+          <el-select filterable @focus="getFactoryName" @change="getList" v-model="listQuery.factoryName"
+                     placeholder="请选择厂商名称"
                      style="width: 200px" class="filter-item">
             <el-option
               v-for="item in listFactoryName"
@@ -68,7 +69,7 @@
     >
       <el-table-column
         type="selection"
-        width="55">
+        width="40">
       </el-table-column>
       <el-table-column type="index" align="center" label="序号" width="50" fixed="left"></el-table-column>
 
@@ -82,7 +83,7 @@
           {{ scope.row.factoryName }}
         </template>
       </el-table-column>
-      <el-table-column label="升级设备类型" align="center" width="150" :formatter="renderType">
+      <el-table-column label="设备类型" align="center" width="120" :formatter="renderType">
       </el-table-column>
 
       <el-table-column label="产品型号" align="center" width="150">
@@ -142,14 +143,15 @@
       :visible.sync="otaDialogVisible"
       direction="rtl"
       ref="drawer"
-      :destroy-on-close="true"
+      :destroy-on-close="destroy"
       custom-class="demo-drawer"
       :size="drawerSize"
     >
       <div class="drawer-content">
-        <el-form :model="taskForm" style="flex: 1" size="small">
-          <el-form-item label="厂商" :label-width="formLabelWidth">
-            <el-select @focus="getFactoryName" v-model="taskForm.factoryName" placeholder="请选择厂商名称" style="width: 80%"
+        <el-form ref="taskForm" :model="taskForm" style="flex: 1" size="small" :rules="createTaskRules">
+          <el-form-item label="厂商" :label-width="formLabelWidth" prop="factoryName">
+            <el-select @focus="getFactoryName" v-model="taskForm.factoryName" @change="getFormProduct(false)"
+                       placeholder="请选择厂商名称" style="width: 80%"
                        class="filter-item">
               <el-option
                 v-for="item in tempFactoryName"
@@ -160,19 +162,24 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="设备类型" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.deviceType" placeholder="请选择设备类型" style="width: 80%" class="filter-item">
+          <el-form-item label="设备类型" :label-width="formLabelWidth" prop="deviceType">
+            <el-select v-model="taskForm.deviceType" @change="getFormProduct(false)" placeholder="请选择设备类型"
+                       style="width: 80%" class="filter-item">
               <el-option
                 v-for="item in taskDeviceType"
                 :key="item.index"
                 :label="item.label"
                 :value="item.value"
+                :disabled="item.value !== '1'"
               >
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="产品型号" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.productModel" @focus="getProduct" placeholder="请选择产品型号" style="width: 80%"
+          <el-form-item label="产品型号" :label-width="formLabelWidth" v-if="taskForm.factoryName && taskForm.deviceType"
+                        prop="productModel">
+            <el-select v-model="taskForm.productModel"
+                       @change="getFormHard(false)"
+                       placeholder="请选择产品型号" style="width: 80%"
                        class="filter-item">
               <el-option
                 v-for="item in taskProductModel"
@@ -183,8 +190,9 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="硬件版本" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.hardVersion" placeholder="请选择硬件版本" style="width: 80%" class="filter-item">
+          <el-form-item label="硬件版本" :label-width="formLabelWidth" v-if="taskForm.productModel" prop="hardVersion">
+            <el-select v-model="taskForm.hardVersion" @change="getFormSoft" placeholder="请选择硬件版本" style="width: 80%"
+                       class="filter-item">
               <el-option
                 v-for="item in taskHardVersion"
                 :key="item.index"
@@ -194,25 +202,40 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="软件版本" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.softVersion" placeholder="请选择软件版本" style="width: 80%" class="filter-item">
+          <el-form-item label="软件版本" :label-width="formLabelWidth" v-if="taskForm.hardVersion" prop="softVersion">
+            <el-select v-model="taskForm.softVersion" placeholder="请选择软件版本" style="width: 80%"
+                       class="filter-item">
               <el-option
                 v-for="item in taskSoftVersion"
                 :key="item.index"
-                :label="item.label"
-                :value="item.value"
+                :label="item.softVersion"
+                :value="item.packageId"
               >
               </el-option>
             </el-select>
+          </el-form-item>
+          <el-form-item label="任务起止时间" :label-width="formLabelWidth" prop="time">
+            <el-date-picker
+              v-model="taskForm.time"
+              type="datetimerange"
+              :default-time="['23:59:59', '23:59:59']"
+              :picker-options="pickerOptions1"
+              value-format="yyyy-MM-dd HH:mm:ss"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期">
+            </el-date-picker>
           </el-form-item>
           <el-form-item style="text-align: center">
             <span class="ota-task-title">主设备信息选择</span>
           </el-form-item>
-          <el-form-item label="主设备厂商名称" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.mainFactoryName" placeholder="请选择主设备厂商名称" style="width: 80%"
+          <el-form-item label="主设备厂商" :label-width="formLabelWidth" prop="mainFactoryName">
+            <el-select v-model="taskForm.mainFactoryName" @focus="getFactoryName" @change="getFormProduct(true)"
+                       placeholder="请选择主设备厂商名称"
+                       style="width: 80%"
                        class="filter-item">
               <el-option
-                v-for="item in taskMainFactory"
+                v-for="item in tempFactoryName"
                 :key="item.index"
                 :label="item.label"
                 :value="item.value"
@@ -220,22 +243,28 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="主设备类型" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.mainDeviceType" placeholder="请选择主设备类型" style="width: 80%" class="filter-item">
+          <el-form-item label="主设备类型" :label-width="formLabelWidth" prop="mainDeviceType">
+            <el-select v-model="taskForm.mainDeviceType" placeholder="请选择主设备类型" @change="getFormProduct(true)"
+                       style="width: 80%" class="filter-item">
               <el-option
-                v-for="item in taskMainDeviceType"
+                v-for="item in taskDeviceType"
                 :key="item.index"
                 :label="item.label"
                 :value="item.value"
+                :disabled="item.value === '1'"
               >
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="主设备产品型号" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.mainProductModel" placeholder="请选择主设备产品型号" style="width: 80%"
+          <el-form-item label="主设备产品型号" :label-width="formLabelWidth"
+                        v-if="taskForm.mainDeviceType && taskForm.mainFactoryName" prop="mainProductModel">
+            <el-select v-model="taskForm.mainProductModel"
+                       @change="getFormHard(true)"
+                       placeholder="请选择主设备产品型号"
+                       style="width: 80%"
                        class="filter-item">
               <el-option
-                v-for="item in taskMainProductType"
+                v-for="item in taskMainProductModel"
                 :key="item.index"
                 :label="item.label"
                 :value="item.value"
@@ -243,7 +272,8 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="主设备硬件版本" :label-width="formLabelWidth">
+          <el-form-item label="主设备硬件版本" :label-width="formLabelWidth" v-if="taskForm.mainProductModel"
+                        prop="mainHardVersion">
             <el-select v-model="taskForm.mainHardVersion" placeholder="请选择主设备硬件版本" style="width: 80%"
                        class="filter-item">
               <el-option
@@ -256,15 +286,16 @@
             </el-select>
           </el-form-item>
           <el-form-item label="主设备编码" :label-width="formLabelWidth">
-            <el-select v-model="taskForm.mainDeviceNames" placeholder="请选择主设备编码" style="width: 80%" class="filter-item">
-              <el-option
-                v-for="item in taskMainDeviceNames"
-                :key="item.index"
-                :label="item.label"
-                :value="item.value"
-              >
-              </el-option>
-            </el-select>
+            <el-link type="primary" @click="mainDeviceList">已选择 {{ taskForm.mainDeviceCount }} 个主设备，选择当前筛选条件下的主设备...
+            </el-link>
+            <el-popconfirm
+              title="清空已选择的主设备？"
+              style="margin-left: 60px"
+              @confirm="removeMainDevice"
+              v-if="taskForm.mainDeviceCount > 0"
+            >
+              <el-button plain slot="reference" type="primary">清空已选主设备</el-button>
+            </el-popconfirm>
           </el-form-item>
 
         </el-form>
@@ -273,13 +304,173 @@
             <el-button style="width: 50%" @click="cancelOta" size="small">取 消</el-button>
           </div>
           <div style="text-align: left;padding-left: 8px">
-            <el-button style="width: 50%" type="primary" size="small" @click="$refs.drawer.closeDrawer()"
-                       :loading="otaLoading">{{ otaLoading ? '提交中 ...' : '确 定' }}
+            <el-popconfirm
+              title="未选择主设备,将升级所有当前条件下的设备！"
+              v-if="isPop"
+            >
+              <el-button @click="createTask" slot="reference" style="width: 50%" type="primary" size="small"
+                         :loading="creatingTask">{{ creatingTask ? '提交中 ...' : '开始升级' }}
+              </el-button>
+            </el-popconfirm>
+            <el-button v-else @click="createTask" slot="reference" style="width: 50%" type="primary" size="small"
+                       :loading="creatingTask">{{ creatingTask ? '提交中 ...' : '开始升级' }}
             </el-button>
           </div>
         </div>
       </div>
+      <!--    新建OTA任务 查看主设备-->
+      <el-drawer
+        :with-header="true"
+        :append-to-body="true"
+        title="选择OTA任务主设备"
+        :visible.sync="taskMainDeviceVisible"
+        direction="rtl"
+        :before-close="closeSelectedDrawer"
+        ref="drawer"
+        :destroyOnClose="true"
+        :size="tableDrawerSize"
+      >
+
+        <el-form :inline="true" :label-position="labelPosition" size="small" class="detail-form">
+          <el-form-item label="厂商">
+            <el-input v-model="taskForm.mainFactoryName" disabled style="width: 200px"
+                      class="filter-item"></el-input>
+          </el-form-item>
+          <el-form-item label="设备类型">
+            <el-input v-model="taskForm.mainDeviceType" disabled style="width: 200px"
+                      class="filter-item"></el-input>
+          </el-form-item>
+          <el-form-item label="产品型号">
+            <el-input v-model="taskForm.mainProductModel" disabled style="width: 200px"
+                      class="filter-item"></el-input>
+          </el-form-item>
+          <el-form-item label="硬件版本">
+            <el-input v-model="taskForm.mainHardVersion" disabled style="width: 200px"
+                      class="filter-item"></el-input>
+          </el-form-item>
+          <el-form-item label="主设备编码">
+            <el-input v-model="taskForm.searchDevice" clearable placeholder="主设备编码" style="width: 200px"
+                      class="filter-item"></el-input>
+
+          </el-form-item>
+
+          <el-button type="primary" @click="mainDeviceList" icon="el-icon-search" size="small">查询</el-button>
+          <el-button type="primary" @click="addMainDevice" icon="el-icon-plus" size="small">添加选中设备</el-button>
+          <el-button type="primary" @click="editChosenMain" icon="el-icon-edit" size="small">查看已选择设备</el-button>
+
+        </el-form>
+        <el-table
+          v-loading="mainDeviceLoading"
+          :data="mainDeviceData"
+          @select="selectMain"
+          @select-all="selectMain"
+          element-loading-text="加载中..."
+          highlight-current-row
+          border
+          fit
+          class="detail-table"
+        >
+          <el-table-column
+            type="selection"
+            width="50"
+          ></el-table-column>
+          <el-table-column type="index" align="center" label="序号" width="50"></el-table-column>
+
+          <el-table-column label="设备编号" align="center">
+            <template slot-scope="scope">
+              {{ scope.row.deviceName }}
+            </template>
+          </el-table-column>
+          <el-table-column label="设备类型" align="center" :formatter="renderType">
+          </el-table-column>
+          <el-table-column label="厂商" align="center">
+            <template slot-scope="scope">
+              {{ scope.row.factoryName }}
+            </template>
+          </el-table-column>
+          <el-table-column label="产品型号" align="center">
+            <template slot-scope="scope">
+              {{ scope.row.productModel }}
+            </template>
+          </el-table-column>
+
+          <el-table-column label="硬件版本" align="center">
+            <template slot-scope="scope">
+              {{ scope.row.hardVersion }}
+            </template>
+          </el-table-column>
+
+        </el-table>
+        <pagination v-show="mainDeviceTotal>0" :total="mainDeviceTotal" :page.sync="taskForm.current"
+                    :limit.sync="taskForm.size"
+                    @pagination="mainDeviceList"/>
+
+        <!-- 已选的主设备，第三层drawer-->
+        <el-drawer
+          title="已添加主设备"
+          :visible.sync="mainChosenVisible"
+          direction="rtl"
+          :append-to-body="true"
+          ref="taskMainChosen"
+          :size="tableDrawerSize"
+        >
+          <el-form>
+            <el-form-item style="margin:1%">
+              <el-button type="primary" @click="removeSelected" icon="el-icon-delete" size="small">删 除</el-button>
+            </el-form-item>
+          </el-form>
+          <el-table
+            v-loading="mainDeviceLoading"
+            :data="chosenDeviceData"
+            @select="selectChosen"
+            @select-all="selectChosen"
+            element-loading-text="加载中..."
+            highlight-current-row
+            border
+            fit
+            class="detail-table"
+          >
+            <el-table-column
+              type="selection"
+              width="46"
+            ></el-table-column>
+            <el-table-column type="index" align="center" label="序号" width="50"></el-table-column>
+
+            <el-table-column label="设备编号" align="center" width="150">
+              <template slot-scope="scope">
+                {{ scope.row.deviceName }}
+              </template>
+            </el-table-column>
+            <el-table-column label="设备类型" align="center"  :formatter="renderType">
+            </el-table-column>
+            <el-table-column label="厂商" align="center" >
+              <template slot-scope="scope">
+                {{ scope.row.factoryName }}
+              </template>
+            </el-table-column>
+            <el-table-column label="产品型号" align="center" >
+              <template slot-scope="scope">
+                {{ scope.row.productModel }}
+              </template>
+            </el-table-column>
+
+            <el-table-column label="硬件版本" align="center" >
+              <template slot-scope="scope">
+                {{ scope.row.hardVersion }}
+              </template>
+            </el-table-column>
+
+          </el-table>
+          <pagination v-show="chosenDeviceTotal>0" :total="chosenDeviceTotal" :page.sync="chosenMain.current"
+                      :limit.sync="chosenMain.size"
+                      @pagination="chosenMainList"/>
+
+        </el-drawer>
+
+
+      </el-drawer>
     </el-drawer>
+
     <!--    查看任务详情-->
     <el-drawer
       :with-header="true"
@@ -365,7 +556,7 @@
 
           </el-form-item>
           <el-form-item label="主设备编码" :label-width="formLabelWidth">
-            <el-link type="success" @click="handleDetailTable">已选择{{ detailForm.mainDeviceCount }}个主设备，查看升级详情...
+            <el-link type="success" @click="handleDetailTable">已选择 {{ detailForm.mainDeviceCount }} 个 主设备，查看升级详情...
             </el-link>
           </el-form-item>
 
@@ -531,19 +722,20 @@
 
 
     </el-drawer>
+
   </div>
 </template>
 
 <script>
 import Pagination from '@/components/Pagination'
-import {getOtaDetail, getFactoryList, getOtaList, getSubDetailList} from "@/api/table";
+import {getOtaDetail, getFactoryList, getOtaList, getDevice} from "@/api/table";
 import {
   createDevice,
   massSave,
   getFactoryNameList,
   queryProductModelList,
   queryDeviceStatus,
-  cmdPage, queryHardVersion, otaSend, updateDevice, deleteDevice, downloadFile, exportExcel
+  cmdPage, otaSend, updateDevice, deleteDevice, downloadFile, exportExcel, querySoftVersion, otaTask
 } from "@/api/operation";
 import {
   renderTaskStatus,
@@ -564,14 +756,16 @@ export default {
   data() {
     return {
       //全局
-      labelPosition: "right",
-      formLabelWidth: '110px',
+      labelPosition: "left",
+      formLabelWidth: '130px',
       drawerSize: '50%',
       tempFactoryName: [],
+      destroy: true,
       //list
       list: null,
       listLoading: false,
       total: 0,
+      deviceType: global.tempDeviceType,
       listQuery: {
         current: 1,
         size: 20,
@@ -604,29 +798,54 @@ export default {
       renderOtaStatus: renderOtaStatus,
       renderProgress: renderProgress,
       //OTA任务
-      otaLoading: false, //新建OTA任务
+      creatingTask: false, //新建OTA任务
       otaDialogVisible: false,
-      taskMainDeviceNames: [], //主设备
+      chosenDeviceData: [], //选中的主设备
       taskProductModel: [],
-      taskDeviceType: global.tempDeviceType,
+      taskDeviceType: global.deviceType,
       taskHardVersion: [],
       taskSoftVersion: [],
-      taskMainFactory: [],
-      taskMainDeviceType: [],
-      taskMainProductType: [],
+      taskMainProductModel: [],
       taskMainHard: [],
       taskForm: {
-        deviceType: "",
-        factoryName: "",
-        productModel: "",
-        hardVersion: "",
+        current: 1,
+        size: 20,
+        deviceType: undefined,
+        factoryName: undefined,
+        productModel: undefined,
+        hardVersion: undefined,
         softVersion: undefined,
-        mainDeviceNames: '',
-        mainHardVersion: '',
-        mainProductModel: '',
-        mainDeviceType: '',
-        mainFactoryName: '',
-        time: [new Date(2000, 10, 10, 10, 10), new Date(2000, 10, 11, 10, 10)],
+        mainDeviceNames: undefined,
+        mainDeviceCount: 0,
+        searchDevice: undefined,
+        mainHardVersion: undefined,
+        mainProductModel: undefined,
+        mainDeviceType: undefined,
+        mainFactoryName: undefined,
+        time: undefined,
+      },
+      isPop: false,
+      pickerOptions1: {
+        disabledDate(time) {
+          return time.getTime() < Date.now() - 8.64e7;
+        },
+      },
+      //OTA任务查看主设备（第2层drawer）
+      taskMainDeviceVisible: false,
+      tableDrawerSize: '90%',
+      mainDeviceLoading: false,
+      mainDeviceData: null,
+      mainDeviceTotal: 0,
+      selected: [],
+      selectedNames: [],
+      deleteSelected: [],
+      deleteSelectedNames: [],
+      //OTa任务第三层，编辑已选择的主设备
+      mainChosenVisible: false,
+      chosenDeviceTotal: 0,
+      chosenMain: {
+        current: 1,
+        size: 20
       },
       //第一层drawer表单
       detailDisabled: true,
@@ -634,7 +853,6 @@ export default {
       taskDetailVisible: false,
       mainDeviceName: [],
       canOperateText: '中止',
-      deviceType: global.deviceType,
       detailForm: {
         deviceType: '',
         factoryName: "",
@@ -678,14 +896,17 @@ export default {
         mainDeviceName: undefined,
       },
       updateType: global.updateType,
-      rules: {
-        deviceName: [{required: true, message: '请输入设备编号', trigger: 'blur'}],
+      createTaskRules: {
         deviceType: [{required: true, message: '请选择设备类型', trigger: 'blur'}],
         factoryName: [{required: true, message: '请选择厂商名称', trigger: 'blur'}],
         productModel: [{required: true, message: '请选择产品型号', trigger: 'blur'}],
         hardVersion: [{required: true, message: '请选择硬件版本', trigger: 'blur'}],
-        mainDeviceName: [{required: true, message: '请输入主设备编码', trigger: 'blur'}],
-        excelFile: [{required: true, message: '请选择上传文件', trigger: 'blur'}],
+        softVersion: [{required: true, message: '请选择软件版本', trigger: 'blur'}],
+        mainFactoryName: [{required: true, message: '请选择主设备厂商', trigger: 'blur'}],
+        mainDeviceType: [{required: true, message: '请选择主设备类型', trigger: 'blur'}],
+        mainProductModel: [{required: true, message: '请选择主设备型号', trigger: 'blur'}],
+        mainHardVersion: [{required: true, message: '请选择主设备硬件版本', trigger: 'blur'}],
+        time: [{required: true, message: '请选择任务时间', trigger: 'blur'}],
       },
     }
   },
@@ -697,7 +918,7 @@ export default {
   methods: {
     getList() {
       this.listLoading = true
-      if (this.listQuery.productModel === undefined){
+      if (this.listQuery.productModel === undefined) {
         this.listQuery.hardVersion = undefined
       }
       getOtaList(this.listQuery).then(response => {
@@ -745,20 +966,9 @@ export default {
       })
 
     },
-    //获取产品型号硬件版本
-    queryProduct(product){
-      let data = []
-      queryProductModelList(product).then(res => {
-        if (res.data.data.length !== 0) {
-          if (res.data.data.infoList.length !== 0) {
-             data = res.data.data.infoList
-          }
-        }
-      })
-      return data
-    },
+
     //下拉获取产品型号productModel 和硬件版本
-    getProduct() {
+    async getProduct() {
       this.listProductModel = [
         {
           label: '全部',
@@ -770,15 +980,21 @@ export default {
           factoryName: this.listQuery.factoryName,
           productType: this.listQuery.deviceType
         }
-        let productData = this.queryProduct(product)
-        productData.forEach((item, index) => {
-          if (item.hardVersions.length !== 0) {
-            this.hard.push(item.hardVersions)
+        try {
+          let res = await queryProductModelList(product)
+          let data = res.data.data
+          if (data.infoList.length !== 0) {
+            data.infoList.forEach((item, index) => {
+              if (item.hardVersions.length !== 0) {
+                this.hard.push(item.hardVersions)
+              }
+              this.listProductModel.push({value: item.productModel, label: item.productModel})
+            })
           }
-          this.listProductModel.push({value: item.productModel, label: item.productModel})
-        })
-
-      }else {
+        } catch (err) {
+          console.log(err)
+        }
+      } else {
         this.$notify({
           title: '警告',
           message: '请先选择设备类型和厂商！',
@@ -787,13 +1003,9 @@ export default {
         });
       }
     },
-    getFormProduct(){
-      if (this.taskForm.factoryName !== undefined && this.taskForm.deviceType !== undefined) {
-
-      }
-    },
-    getHard(){
-      this.listHardVersion.length = 0
+    //下拉硬件
+    getHard() {
+      this.listHardVersion = []
       if (this.listQuery.productModel !== undefined) {
         this.listHardVersion = [
           {
@@ -812,8 +1024,7 @@ export default {
             this.listHardVersion.push({value: item, label: item})
           })
         }
-      }else {
-        console.log(this.listHardVersion)
+      } else {
         this.listHardVersion = [
           {
             label: '全部',
@@ -823,12 +1034,286 @@ export default {
         this.hard = []
       }
     },
+
+    //表单产品类型,硬件型号
+    getFormProduct(isMain) {
+      this.hard = []
+      if (isMain) {
+        this.taskMainProductModel = []
+        this.taskMainHard = []
+        this.taskForm.mainProductModel = undefined
+        this.taskForm.mainHardVersion = undefined
+        let query = {
+          factoryName: this.taskForm.mainFactoryName,
+          productType: this.taskForm.mainDeviceType
+        }
+        this.product(query).then(res => this.taskMainProductModel = res)
+      } else {
+        this.taskProductModel = []
+        this.taskHardVersion = []
+        this.taskForm.productModel = undefined
+        this.taskForm.hardVersion = undefined
+        let query = {
+          factoryName: this.taskForm.factoryName,
+          productType: this.taskForm.deviceType
+        }
+        this.product(query).then(res => this.taskProductModel = res)
+      }
+
+    },
+
+    async product(query) {
+      let list = []
+      try {
+        if (query.factoryName !== undefined && query.productType !== undefined) {
+          let res = await queryProductModelList(query)
+          let data = res.data.data
+          if (data.infoList.length !== 0) {
+            data.infoList.forEach((item, index) => {
+              if (item.hardVersions.length !== 0) {
+                this.hard.push(item.hardVersions)
+              }
+              list.push({value: item.productModel, label: item.productModel})
+            })
+          }
+
+        }
+      } catch (err) {
+        console.log(err)
+      }
+      return list
+    },
+
+    getFormHard(isMain) {
+      if (isMain) {
+        this.taskForm.mainHardVersion = ''
+        this.taskMainHard = this.hardVersion(this.taskMainProductModel, this.taskForm.mainProductModel)
+      } else {
+        this.taskForm.hardVersion = ''
+        this.taskHardVersion = this.hardVersion(this.taskProductModel, this.taskForm.productModel)
+      }
+    },
+    hardVersion(productModel, chosenProduct) {
+      let list = []
+      let modelIndex = 0
+      productModel.forEach((item, index) => {
+        if (chosenProduct === item.value) {
+          modelIndex = index
+        }
+      })
+      if (this.hard.length !== 0 && this.hard[modelIndex].length !== 0) {
+        this.hard[modelIndex].forEach((item, index) => {
+          list.push({value: item, label: item})
+        })
+      }
+      return list
+    },
+    //表单获取软件版本
+    getFormSoft() {
+      this.taskForm.softVersion = ''
+      let query = {
+        factoryName: this.taskForm.factoryName,
+        hardVersion: this.taskForm.hardVersion,
+        productModel: this.taskForm.productModel
+      }
+      this.softVersion(query)
+    },
+    async softVersion(query) {
+      this.taskSoftVersion = []
+      let res = await querySoftVersion(query)
+      if (res.data.success) {
+        if (res.data.data.length !== 0) {
+          let data = res.data.data
+          data.forEach((item, value) => {
+            this.taskSoftVersion.push({softVersion: item.softVersion, packageId: item.objectId})
+          })
+        }
+      } else {
+        this.$message({
+          showClose: true,
+          message: res.data.message,
+          type: 'error'
+        })
+      }
+    },
+    //新建OTA任务
+    handleOtaCreate() {
+      this.otaDialogVisible = true
+      this.$nextTick(() => {
+        this.$refs['taskForm'].clearValidate()
+      })
+    },
+    //ota任务开始升级
+    createTask() {
+      this.$refs['taskForm'].validate((valid) => {
+        if (valid) {
+          this.taskForm.mainDeviceCount === 0 ? this.isPop = true : this.isPop = false
+          let query = {
+            factoryName: this.taskForm.factoryName,
+            deviceType: this.taskForm.deviceType,
+            productModel: this.taskForm.productModel,
+            hardVersion: this.taskForm.hardVersion,
+            packageId: this.taskForm.softVersion,
+            beginTime: this.taskForm.time[0],
+            endTime: this.taskForm.time[1],
+            mainFactoryName: this.taskForm.mainFactoryName,
+            mainDeviceType: this.taskForm.mainDeviceType,
+            mainProductModel: this.taskForm.mainProductModel,
+            mainHardVersion: this.taskForm.mainHardVersion,
+            mainDeviceNames: this.taskForm.mainDeviceNames,
+          }
+          this.creatingTask = true
+          otaTask(query).then(res => {
+            this.$message({
+              showClose: true,
+              message: res.data.message,
+              type: res.data.success ? 'info' : 'error'
+            })
+            this.otaDialogVisible = res.data.success ? 'false' : 'true'
+          })
+          this.creatingTask = false
+        }
+      })
+
+    },
+    //ota升级主设备选择,获取主设备列表
+    mainDeviceList() {
+      const query = {
+        current: this.taskForm.current,
+        size: this.taskForm.size,
+        deviceType: this.taskForm.mainDeviceType,
+        factoryName: this.taskForm.mainFactoryName,
+        hardVersion: this.taskForm.mainHardVersion,
+        productModel: this.taskForm.mainProductModel,
+        isShowMain: true,
+      }
+      this.taskMainDeviceVisible = true
+      getDevice(query).then(res => {
+        if (res.data.success) {
+          if (res.data.data.length !== 0) {
+            var device = res.data.data
+            this.mainDeviceData = device.records
+            this.mainDeviceTotal = device.total
+          }
+        } else {
+          this.$message({
+            showClose: true,
+            message: '获取设备失败',
+            type: 'error'
+          })
+        }
+      })
+    },
+
+    //task添加主设备
+    selectMain(selection, row) {
+      this.selected = []
+      this.selectedNames = []
+      selection.forEach((item, index) => {
+        this.selectedNames.push(item.deviceName)
+      })
+      this.selected = selection
+    },
+
+    addMainDevice() {
+      if (this.selected.length === 0) {
+        this.$message({
+          showClose: true,
+          message: '请先选择设备！',
+          type: 'warning'
+        })
+      } else {
+        this.chosenDeviceData = []
+        this.taskForm.mainDeviceNames = ''
+        this.taskForm.mainDeviceCount = 0
+        this.chosenDeviceData = this.selected
+
+        this.selectedNames.forEach((item, index) => {
+          this.taskForm.mainDeviceNames += item + ','
+          this.taskForm.mainDeviceCount++
+        })
+        this.taskForm.mainDeviceNames = this.taskForm.mainDeviceNames.substring(0, this.taskForm.mainDeviceNames.lastIndexOf(','));
+
+        this.$message({
+          showClose: true,
+          message: '添加设备成功！',
+          type: 'success'
+        })
+      }
+    },
+    //已选择的主设备
+    selectChosen(selection) {
+      this.deleteSelected = []
+      this.deleteSelectedNames = []
+      selection.forEach((item, index, arr) => {
+        //删除的设备名
+        this.deleteSelectedNames.push(item.deviceName)
+      })
+      this.deleteSelected = selection
+    },
+
+    //删除已选
+    removeSelected() {
+      if (this.deleteSelected.length === 0) {
+        this.$message({
+          showClose: true,
+          message: '请先选择设备！',
+          type: 'warning'
+        })
+      } else {
+
+
+      }
+    },
+    //本地查询已选择主设备列表
+    chosenMainList() {
+
+    },
+
+    //关闭task drawer
+    handleClose(done) {
+      if (this.creatingTask) {
+        return
+      }
+      this.$confirm('当前内容未保存，确定离开？').then(_ => {
+        done()
+      })
+    },
+    //关闭查看主设备drawer
+    closeSelectedDrawer(done) {
+      if (this.taskForm.mainDeviceCount > 0) {
+        done()
+      } else {
+        this.$confirm('当前未添加主设备，确定离开？').then(_ => {
+          done()
+        })
+      }
+    },
+
+    //查看已选择的主设备
+    editChosenMain() {
+      if (this.taskForm.mainDeviceCount > 0) {
+        this.mainChosenVisible = true
+      } else {
+        this.$message({
+          showClose: true,
+          message: '还未添加任何主设备，清先添加主设备！',
+          type: 'warning'
+        })
+      }
+    },
+
+    //清空已选择的主设备
+    removeMainDevice() {
+      this.taskForm.mainDeviceNames = undefined
+      this.taskForm.mainDeviceCount = 0
+    },
+
     //第一个drawer表单详情
     handleDetail(index, row) {
       this.taskDetailVisible = true
       this.detailQuery.taskId = row.taskId
       this.detailForm = Object.assign({}, row)
-      console.log(this.detailForm)
       switch (renderTaskStatus(this.detailForm.taskStatus)) {
         case '3':
           this.canOperate = true
@@ -852,7 +1337,7 @@ export default {
     detailSearch() {
       getOtaDetail(this.detailQuery).then(response => {
         if (response.data.data !== null) {
-          if (response.data.data.records.length !== 0){
+          if (response.data.data.records.length !== 0) {
             this.detailData = response.data.data.records
             this.detailTotal = response.data.data.total
           }
@@ -867,26 +1352,14 @@ export default {
       })
       this.detailLoading = false
     },
-
     handleSubClose(done) {
       done()
     },
-
     cancelDetail() {
       this.taskDetailVisible = false
     },
 
-    //新建OTA任务
-    handleOtaCreate() {
-      this.otaDialogVisible = true
 
-      // this.$nextTick(() => {
-      //   this.$refs['mainDataForm'].clearValidate()
-      // })
-    },
-    handleClose(done) {
-      this.otaDialogVisible = false
-    },
     cancelOta() {
       this.otaDialogVisible = false
     },

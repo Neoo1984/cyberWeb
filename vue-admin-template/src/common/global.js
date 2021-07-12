@@ -1,7 +1,7 @@
 /*
 * 设备类型
 * */
-export const deviceType = [
+export const tempDeviceType = [
   {
     label: '全部',
     value: undefined
@@ -22,7 +22,7 @@ export const deviceType = [
 /*
 * 设备类型
 * */
-export const tempDeviceType = [
+export const deviceType = [
   {
     label: '电池',
     value: "1"

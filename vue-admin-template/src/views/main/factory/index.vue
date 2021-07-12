@@ -189,7 +189,7 @@ export default {
                 duration: 5000
               })
             } else {
-              this.submitLoading = true
+              this.submitLoading = false
               this.$notify.error({
                 title: '失败',
                 message: message,

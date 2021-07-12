@@ -91,7 +91,7 @@ export const constantRoutes = [
         path: 'index',
         component: () => import('@/views/main/product/index'),
         name: 'Product',
-        meta: { title: '产品管理', icon: 'product', affix: true }
+        meta: { title: '产品管理', icon: 'product', affix: true,state: '1'}
       }
     ]
   },
