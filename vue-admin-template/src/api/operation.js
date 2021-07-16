@@ -147,11 +147,12 @@ export function otaSend(data) {
   })
 }
 //OTA任务导出表格
-export function exportExcel(data) {
+export function exportExcel(query,ex) {
   return request({
-    url: 'task/outputTaskDetail',
+    url: ex ?'task/outputTaskExtInfo' : 'task/outputTaskDetail',
     method: 'post',
-    data
+    data:query,
+    responseType:'blob',
   })
 }
 
@@ -204,5 +205,55 @@ export function otaTask(data) {
     data
   })
 }
+//添加用户
+export function addUser(data) {
+  return request({
+    url: `user/add`,
+    method: 'post',
+    data
+  })
+}
+//修改用户
+export function updateUser(data) {
+  return request({
+    url: `user/updateUserInfo`,
+    method: 'put',
+    data
+  })
+}
+//注销/恢复 用户
+export function operateUser(data) {
+  return request({
+    url: `user/operateUser`,
+    method: 'post',
+    data
+  })
+}
+//查询设备数据
+export function deviceData(deviceName) {
+  return request({
+    url: `device/queryDeviceData`,
+    method: 'get',
+    params:{deviceName:deviceName}
+  })
+}
+// 刷新设备
+export function operateTask(data) {
+  return request({
+    url: `task/operateTask`,
+    method: 'post',
+    data
+  })
+}
+export function refreshDevice(deviceName) {
+  return request({
+    url: `device/refreshDeviceData`,
+    method: 'get',
+    params:{deviceName:deviceName}
+  })
+}
+
+
+
 
 

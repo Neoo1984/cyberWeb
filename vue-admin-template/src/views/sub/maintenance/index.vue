@@ -22,16 +22,14 @@
     <div class="box-main">
 
       <div class="box-content">
-        <div v-for="item in list" class="box-item" :style="`width:${itemWidth}%;`">
+        <div v-for="(item,index) in list" class="box-item" :style="`width:${itemWidth}%;`">
           <el-checkbox-group v-model="checkList" @change="handleCheckedBox">
-            <el-checkbox :label="item" :key="item" class="check-list"></el-checkbox>
+            <el-checkbox :label="index+1" :key="index" class="check-list"></el-checkbox>
           </el-checkbox-group>
+<!--          电池-->
 
         </div>
       </div>
-
-
-
     </div>
     <!--ota-->
     <el-dialog
@@ -79,8 +77,8 @@
 <script>
 
 import Comm from '@/views/sub/comm'
-import {otaSend, queryHardVersion} from "@/api/operation";
-import {global} from "@/common";
+import {deviceData, otaSend, querySoftVersion, refreshDevice} from "@/api/operation"
+import {global} from "@/common"
 
 export default {
   name: 'Maintenance',
@@ -110,20 +108,42 @@ export default {
       },
       softVersion:[],
       otaRules: { packageId: [{ required: true, message: '请选择软件版本', trigger: 'blur' }] },
-
+      deviceInfo:JSON.parse(sessionStorage.getItem('infoQuery')),
+      messageId:'',
+      //格口数据
+      cpData:undefined,
+      bigData:undefined
     }
   },
   created() {
     this.itemWidth = 100 / (Math.ceil(this.list.length / 4))
-    console.log(this.$route.query.deviceName)
+    this.getList()
   },
   methods: {
-    handleClose(done) {
-      done()
+    getList(){
+      deviceData(this.deviceInfo.deviceName).then(res => {
+        if (res.data.data !== null) {
+          this.cpData = res.data.data.cpAndBatteryData
+          console.log(this.cpData)
+        }
+      })
     },
     //刷新数据
     handleRefresh() {
+      refreshDevice(this.deviceInfo.deviceName).then((res) => {
+        if (res.data !== null){
+            if (res.data.data.messageId !== null){
+              this.messageId = res.data.data.messageId
+            }
+        }else {
+          this.$message({
+            showClose: true,
+            message: '获取失败',
+            type: 'error'
+          })
+        }
 
+      })
     },
     //OTA
     handleOta() {
@@ -135,7 +155,7 @@ export default {
           // productModel: this.listQuery.productModel
         }
         this.softVersion = []
-        queryHardVersion(query).then(res => {
+        querySoftVersion(query).then(res => {
             if (res.data.success) {
               if (res.data.data.length !== 0) {
                 var data = res.data.data
@@ -158,7 +178,7 @@ export default {
       } else {
         this.$notify({
           title: '警告',
-          message: 'q',
+          message: '请先勾选要OTA的格口！',
           type: 'warning'
         });
       }

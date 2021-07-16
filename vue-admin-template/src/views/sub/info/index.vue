@@ -1,5 +1,4 @@
 <template>
-
   <div class="app-container">
     <div class="filter-container">
       <!--表单-->
@@ -10,22 +9,23 @@
                    label-width="100px"
           >
             <el-form-item label="设备编码" prop="mainDeviceName">
-              <el-input v-model="mainTemp.mainDeviceName" disabled style="width: 80%"
+              <el-input v-model="mainTemp.deviceName" disabled style="width: 200px"
                         class="filter-item"
               ></el-input>
             </el-form-item>
-            <el-form-item label="设备状态" prop="mainDeviceName">
-              <el-input v-model="mainTemp.mainDeviceName" disabled style="width: 80%"
-                        class="filter-item"
-              ></el-input>
-            </el-form-item>
-            <el-form-item label="最后心跳时间" prop="mainDeviceName">
-              <el-input v-model="mainTemp.mainDeviceName" disabled style="width: 80%"
-                        class="filter-item"
-              ></el-input>
+            <el-form-item label="厂商名称" prop="factoryName">
+              <el-select v-model="mainTemp.factoryName" disabled placeholder="请选择厂商名称" style="width: 200px" class="filter-item">
+                <el-option
+                  v-for="item in factoryName"
+                  :key="item.index"
+                  :label="item.label"
+                  :value="item.value"
+                >
+                </el-option>
+              </el-select>
             </el-form-item>
             <el-form-item label="设备类型" prop="deviceType">
-              <el-select v-model="mainTemp.deviceType" placeholder="请选择设备类型" style="width: 80%" class="filter-item">
+              <el-select v-model="mainTemp.deviceType" disabled placeholder="请选择设备类型" style="width: 200px" class="filter-item">
                 <el-option
                   v-for="item in deviceType"
                   :key="item.index"
@@ -44,19 +44,9 @@
                    :label-position="labelPosition"
                    label-width="100px"
           >
-            <el-form-item label="厂商名称" prop="factoryName">
-              <el-select v-model="mainTemp.factoryName" placeholder="请选择厂商名称" style="width: 200px" class="filter-item">
-                <el-option
-                  v-for="item in factoryName"
-                  :key="item.index"
-                  :label="item.label"
-                  :value="item.value"
-                >
-                </el-option>
-              </el-select>
-            </el-form-item>
+
             <el-form-item label="产品型号" prop="productModel">
-              <el-select v-model="mainTemp.productModel" placeholder="请选择产品型号" style="width: 200px" class="filter-item">
+              <el-select v-model="mainTemp.productModel" disabled placeholder="请选择产品型号" style="width: 200px" class="filter-item">
                 <el-option
                   v-for="item in productModel"
                   :key="item.index"
@@ -67,7 +57,7 @@
               </el-select>
             </el-form-item>
             <el-form-item label="硬件版本" prop="hardVersion">
-              <el-select v-model="mainTemp.hardVersion" placeholder="请选择产品型号" style="width: 200px" class="filter-item">
+              <el-select v-model="mainTemp.hardVersion" disabled placeholder="请选择产品型号" style="width: 200px" class="filter-item">
                 <el-option
                   v-for="item in hardVersion"
                   :key="item.index"
@@ -77,9 +67,6 @@
                 </el-option>
               </el-select>
             </el-form-item>
-            <el-form>
-              <el-button>取消</el-button>
-            </el-form>
           </el-form>
 
         </el-col>
@@ -127,6 +114,7 @@
 import {renderTime, renderIsOnline, renderOtaStatus, renderProgress} from "@/utils";
 import {queryDeviceStatus} from "@/api/operation";
 import {global} from "@/common";
+
 export default {
   name: 'Info',
   data() {
@@ -134,19 +122,17 @@ export default {
       statusData: null,
       statusLoading: false,
       labelPosition: 'right',
-      renderIsOnline:renderIsOnline,
-      renderOtaStatus:renderOtaStatus,
-      deviceType:global.deviceType,
-      productModel:[],
+      renderIsOnline: renderIsOnline,
+      renderOtaStatus: renderOtaStatus,
+      deviceType: global.deviceType,
+      productModel: [],
       mainTemp: {
-        mainDeviceName: '',
         deviceName: '',
         deviceType: '',
         factoryName: '',
         productKey: '',
         productModel: '',
         hardVersion: '',
-        softVersion: undefined,
       },
       factoryName: [],
       hardVersion: [],
@@ -157,41 +143,47 @@ export default {
         productModel: [{required: true, message: '请选择产品型号', trigger: 'blur'}],
         hardVersion: [{required: true, message: '请选择硬件版本', trigger: 'blur'}],
       },
+      infoQuery: JSON.parse(sessionStorage.getItem('infoQuery'))
     }
   },
   created() {
     this.handleStatus()
-    console.log(this.$route.query.deviceName +'111')
-
+    this.setMainTemp()
   },
   methods: {
     // 状态
     handleStatus() {
-      const query = {deviceName: sessionStorage.getItem('device_name')}
-      console.log(query)
+      const query = JSON.parse(sessionStorage.getItem('infoQuery'))
       this.statusData = []
       this.statusLoading = true
-
       queryDeviceStatus(query).then(res => {
-        if (res.data.success) {
-          this.statusLoading = false
-          if (res.data.data.length !== 0) {
-            this.statusData.push(res.data.data)
-            this.statusLoading = false
+        if (res.data != null) {
+          if (res.data.success) {
+            if (res.data.data !== null) {
+              this.statusData.push(res.data.data)
+            }
+          } else {
+            this.$message({
+              showClose: true,
+              message: '无此设备或此设备未曾上线过',
+              type: 'error',
+              duration: 5000
+            })
           }
-        } else {
-          this.statusLoading = false
-          this.$message({
-            showClose: true,
-            message: '无此设备或此设备未曾上线过',
-            type: 'error',
-            duration: 5000
-          })
         }
+
       })
+      this.statusLoading = false
 
     },
-
+    //  添加表单
+    setMainTemp() {
+      this.mainTemp.deviceType = this.infoQuery.deviceType
+      this.mainTemp.factoryName = this.infoQuery.factoryName
+      this.mainTemp.productModel = this.infoQuery.productModel
+      this.mainTemp.hardVersion = this.infoQuery.hardVersion
+      this.mainTemp.deviceName = this.infoQuery.deviceName
+    },
     renderOnlineTime(row) {
       return renderTime(row.onlineTime)
     },
@@ -202,10 +194,10 @@ export default {
       return renderTime(row.refreshTime)
     },
     renderUpdateProgress(row) {
-      return renderProgress(row.updateProgress)
+      return renderProgress(row)
     },
     renderDownloadProgress(row) {
-      return renderProgress(row.downloadProgress)
+      return renderProgress(row)
     },
   }
 }

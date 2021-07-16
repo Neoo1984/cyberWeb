@@ -17,14 +17,13 @@
 
       <div class="box-content">
         <div v-for="item in list" :key="item" class="box-item" :style="`width:${itemWidth}%;`">
-            <span class="box-num">
-              {{item}}
-            </span>
+          <el-checkbox-group v-model="checkList" @change="handleCheckedBox">
+            <el-checkbox :label="item" :key="item" class="check-list"></el-checkbox>
+          </el-checkbox-group>
 
         </div>
 
       </div>
-
 
     </div>
   </div>
@@ -34,20 +33,17 @@
 
 
 
+import {refreshDevice} from "@/api/operation";
+
 export default {
   name: 'FactoryVersion',
   data() {
     return {
-      deviceType: '换电柜荣天',
-      deviceCode: '0000000000011138',
-      factoryName: '荣天',
-      productNum: '00',
-      hwVersion: 'v0.0.1',
       list: [1, 2, 3, 4, 5, 6, 7, 8],
-      drawer: false,
-      direction: 'rtl',
       itemWidth: 0,
-      formInline: {}
+      formInline: {},
+      deviceInfo:JSON.parse(sessionStorage.getItem('infoQuery')),
+      checkList: [], //选中的list
     }
   },
   created() {
@@ -55,15 +51,34 @@ export default {
 
   },
   methods: {
-    handleClose(done) {
-      done()
+    //全选
+    handleCheckAllChange(val) {
+      console.log(val)
+      this.checkList = val ? this.list : []
+      this.isIndeterminate = false
+    },
+    //单选
+    handleCheckedBox(val) {
+      console.log(val)
+      let count = val.length
+      this.allChecked = count === this.list.length
     },
     handleRefresh() {
+      refreshDevice(this.deviceInfo.deviceName).then((res) => {
+        if (res.data !== null){
+          if (res.data.data.messageId !== null){
+            this.messageId = res.data.data.messageId
+          }
+        }else {
+          this.$message({
+            showClose: true,
+            message: '获取失败',
+            type: 'error'
+          })
+        }
 
+      })
     },
-    handleOta() {
-
-    }
   }
 
 }

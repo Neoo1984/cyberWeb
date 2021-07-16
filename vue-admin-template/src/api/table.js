@@ -55,5 +55,30 @@ export function getOtaDetail(data) {
     data
   })
 }
+//ota ex
+export function getExDetail(data) {
+  return request({
+    url: `task/taskExtPageInfo`,
+    method: 'post',
+    data
+  })
+}
+//用户列表
+export function getUser(data) {
+  return request({
+    url: `user/page`,
+    method: 'post',
+    data
+  })
+}
+//子设备详情
+export function getSubDevice(name) {
+  return request({
+    url: `device/queryDeviceInfoByName`,
+    method: 'get',
+    params:{deviceName:name}
+  })
+}
+
 
 

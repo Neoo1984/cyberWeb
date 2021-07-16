@@ -441,20 +441,20 @@
                 {{ scope.row.deviceName }}
               </template>
             </el-table-column>
-            <el-table-column label="设备类型" align="center"  :formatter="renderType">
+            <el-table-column label="设备类型" align="center" :formatter="renderType">
             </el-table-column>
-            <el-table-column label="厂商" align="center" >
+            <el-table-column label="厂商" align="center">
               <template slot-scope="scope">
                 {{ scope.row.factoryName }}
               </template>
             </el-table-column>
-            <el-table-column label="产品型号" align="center" >
+            <el-table-column label="产品型号" align="center">
               <template slot-scope="scope">
                 {{ scope.row.productModel }}
               </template>
             </el-table-column>
 
-            <el-table-column label="硬件版本" align="center" >
+            <el-table-column label="硬件版本" align="center">
               <template slot-scope="scope">
                 {{ scope.row.hardVersion }}
               </template>
@@ -556,7 +556,7 @@
 
           </el-form-item>
           <el-form-item label="主设备编码" :label-width="formLabelWidth">
-            <el-link type="success" @click="handleDetailTable">已选择 {{ detailForm.mainDeviceCount }} 个 主设备，查看升级详情...
+            <el-link type="success" @click="handleExTable">已选择 {{ detailForm.mainDeviceCount }} 个 主设备，查看升级详情...
             </el-link>
           </el-form-item>
 
@@ -566,44 +566,38 @@
             <el-button style="width: 50%" @click="cancelDetail()" size="small">关 闭</el-button>
           </div>
           <div style="text-align: left;padding-left: 8px">
-            <el-button style="width: 50%" type="primary" size="small" v-if="canOperate">
+            <el-button style="width: 50%" @click="operate" type="primary" size="small" v-if="canOperate">
               {{ canOperateText }}
             </el-button>
           </div>
         </div>
       </div>
       <!--      嵌套drawer-->
-
+      <!--扩展表格-->
       <el-drawer
-        :title="subDrawerTitle"
-        :visible.sync="subDetailVisible"
+        title="升级详情"
+        :visible.sync="exDetailVisible"
         direction="rtl"
+        :destroy-on-close="true"
         :append-to-body="true"
-        ref="subDrawer"
-        :before-close="handleSubClose"
+        ref="exDrawer"
         :size="subDrawerSize"
       >
-
         <el-form :inline="true" size="small" class="detail-form">
           <el-form-item label="主设备编码">
-            <el-select v-model="detailQuery.mainDeviceName" placeholder="请选择主设备编码">
+            <el-select filterable v-model="exQuery.mainDeviceName" placeholder="请选择主设备编码">
               <el-option
-                v-for="item in mainDeviceName"
+                v-for="item in exDeviceName"
                 :key="item.index"
                 :label="item.label"
                 :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="从设备编码">
-            <el-input v-model="detailQuery.subDeviceName" placeholder="从设备编码" style="width: 200px"
-                      class="filter-item"></el-input>
-
-          </el-form-item>
-          <el-form-item label="升级状态">
-            <el-select v-model="detailQuery.otaStatus" placeholder="请选择升级状态" style="width: 200px" class="filter-item">
+          <el-form-item label="任务状态">
+            <el-select v-model="exQuery.taskStatus" placeholder="请选择升级状态" style="width: 200px" class="filter-item">
               <el-option
-                v-for="item in otaStatus"
+                v-for="item in taskStatus"
                 :key="item.index"
                 :label="item.label"
                 :value="item.value">
@@ -611,14 +605,15 @@
             </el-select>
           </el-form-item>
 
-          <el-button type="primary" @click="detailSearch" icon="el-icon-search" size="small">查询</el-button>
-          <el-button type="primary" @click="reDetailSearch" icon="el-icon-refresh-left" size="small">重置查询</el-button>
-          <el-button type="primary" @click="handleExcel" icon="el-icon-plus" size="small">导出表格</el-button>
+          <el-button type="primary" @click="exSearch" icon="el-icon-search" size="small">查 询</el-button>
+          <el-button type="primary" @click="reExSearch" icon="el-icon-refresh-left" size="small">重置查询</el-button>
+          <el-button type="primary" @click="handleExcel(true)" icon="el-icon-plus" size="small">导出表格</el-button>
+          <el-button type="primary" @click="handleDetailTable" icon="el-icon-tickets" size="small">子设备升级详情</el-button>
 
         </el-form>
         <el-table
-          v-loading="detailLoading"
-          :data="detailData"
+          v-loading="exLoading"
+          :data="exData"
           element-loading-text="加载中..."
           border
           fit
@@ -627,96 +622,184 @@
         >
           <el-table-column type="index" align="center" label="序号" width="50"></el-table-column>
 
-          <el-table-column label="从设备编号" align="center">
-            <template slot-scope="scope">
-              {{ scope.row.subDeviceName }}
-            </template>
-          </el-table-column>
-          <el-table-column label="主设备编号" align="center">
+          <el-table-column label="设备编号" align="center">
             <template slot-scope="scope">
               {{ scope.row.mainDeviceName }}
             </template>
           </el-table-column>
-          <el-table-column label="升级状态" align="center" :formatter="renderOtaStatus">
+          <el-table-column label="发送状态" align="center" :formatter="renderExSend">
+          </el-table-column>
+          <el-table-column label="升级任务状态" align="center" :formatter="renderExStatus">
           </el-table-column>
 
-          <el-table-column label="下载进度" align="center" :formatter="renderProgress">
-          </el-table-column>
-          <el-table-column label="更新结束时间" align="center" :formatter="renderOtaEndTime">
+          <el-table-column label="更新结束时间" align="center" :formatter="renderExEndTime">
           </el-table-column>
           <el-table-column align="center" label="操作" width="80">
             <template slot-scope="scope">
               <el-button
                 size="mini"
                 type="text"
-                @click="handleItemDetail(scope.$index, scope.row)">详情
+                @click="handleExDetail(scope.$index, scope.row)">详情
               </el-button>
 
             </template>
           </el-table-column>
         </el-table>
-        <pagination v-show="detailTotal>0" :total="detailTotal" :page.sync="detailQuery.current"
-                    :limit.sync="detailQuery.size"
-                    @pagination="detailSearch"/>
-
-        <!--        详情，第三层drawer-->
+        <pagination v-show="exTotal>0" :total="exTotal" :page.sync="exQuery.current"
+                    :limit.sync="exQuery.size"
+                    @pagination="exSearch"/>
+        <!--        第三层-->
         <el-drawer
-          :title="itemDrawerTitle"
-          :visible.sync="itemDetailVisible"
+          :title="subDrawerTitle"
+          :visible.sync="subDetailVisible"
           direction="rtl"
+          :destroy-on-close="true"
           :append-to-body="true"
-          ref="itemDrawer"
+          ref="subDrawer"
           :before-close="handleSubClose"
-          :size="drawerSize"
+          :size="subDrawerSize"
         >
-          <div class="drawer-content">
-            <el-form :model="itemForm" style="flex: 1" size="small">
 
-              <el-form-item label="厂商" :label-width="formLabelWidth">
-                <el-input v-model="itemForm.factoryName" :disabled="itemDetailDisabled"
-                          style="width: 80%"
-                          class="filter-item"
-                ></el-input>
-              </el-form-item>
-              <el-form-item label="设备类型" :label-width="formLabelWidth">
-                <el-input v-model="itemForm.deviceType" :disabled="detailDisabled"
-                          style="width: 80%"
-                          class="filter-item"
-                ></el-input>
-              </el-form-item>
-              <el-form-item label="产品型号" :label-width="formLabelWidth">
-                <el-input v-model="itemForm.productModel" :disabled="detailDisabled"
-                          style="width: 80%"
-                          class="filter-item"
-                ></el-input>
-              </el-form-item>
-              <el-form-item label="硬件版本" :label-width="formLabelWidth">
-                <el-input v-model="itemForm.hardVersion" :disabled="detailDisabled"
-                          style="width: 80%"
-                          class="filter-item"
-                ></el-input>
-              </el-form-item>
-              <el-form-item label="软件版本" :label-width="formLabelWidth">
-                <el-input v-model="itemForm.softVersion" :disabled="detailDisabled"
-                          style="width: 80%"
-                          class="filter-item"
-                ></el-input>
-              </el-form-item>
-              <el-form-item label="主设备编码" :label-width="formLabelWidth">
-                <el-input v-model="itemForm.mainDeviceName" :disabled="detailDisabled"
-                          style="width: 80%"
-                          class="filter-item"
-                ></el-input>
-              </el-form-item>
+          <el-form :inline="true" size="small" class="detail-form">
+            <el-form-item label="主设备编码">
+              <el-select filterable v-model="detailQuery.mainDeviceName" placeholder="请选择主设备编码">
+                <el-option
+                  v-for="item in mainDeviceName"
+                  :key="item.index"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="从设备编码">
+              <el-input v-model="detailQuery.subDeviceName" placeholder="从设备编码" style="width: 200px"
+                        class="filter-item"></el-input>
 
-            </el-form>
-            <div class="drawer-footer">
-              <div style="text-align: center">
-                <el-button style="width: 40%" @click="cancelItem()" size="small" type="primary">退 出</el-button>
+            </el-form-item>
+            <el-form-item label="升级状态">
+              <el-select v-model="detailQuery.otaStatus" placeholder="请选择升级状态" style="width: 200px" class="filter-item">
+                <el-option
+                  v-for="item in otaStatus"
+                  :key="item.index"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+
+            <el-button type="primary" @click="detailSearch" icon="el-icon-search" size="small">查询</el-button>
+            <el-button type="primary" @click="reDetailSearch" icon="el-icon-refresh-left" size="small">重置查询</el-button>
+            <el-button type="primary" @click="handleExcel(false)" :loading="getExcel" icon="el-icon-plus" size="small">导出表格</el-button>
+
+          </el-form>
+          <el-table
+            v-loading="detailLoading"
+            :data="detailData"
+            element-loading-text="加载中..."
+            border
+            fit
+            highlight-current-row
+            class="detail-table"
+          >
+            <el-table-column type="index" align="center" label="序号" width="50"></el-table-column>
+
+            <el-table-column label="从设备编号" align="center">
+              <template slot-scope="scope">
+                {{ scope.row.subDeviceName }}
+              </template>
+            </el-table-column>
+            <el-table-column label="主设备编号" align="center">
+              <template slot-scope="scope">
+                {{ scope.row.mainDeviceName }}
+              </template>
+            </el-table-column>
+            <el-table-column label="升级状态" align="center" :formatter="renderOtaStatus">
+            </el-table-column>
+
+            <el-table-column label="下载进度" align="center" :formatter="renderProgress">
+            </el-table-column>
+            <el-table-column label="更新结束时间" align="center" :formatter="renderOtaEndTime">
+            </el-table-column>
+            <el-table-column align="center" label="操作" width="80">
+              <template slot-scope="scope">
+                <el-button
+                  size="mini"
+                  type="text"
+                  @click="handleItemDetail(scope.$index, scope.row)">详情
+                </el-button>
+
+              </template>
+            </el-table-column>
+          </el-table>
+          <pagination v-show="detailTotal>0" :total="detailTotal" :page.sync="detailQuery.current"
+                      :limit.sync="detailQuery.size"
+                      @pagination="detailSearch"/>
+
+          <!--        详情，第三层drawer-->
+          <el-drawer
+            :title="itemDrawerTitle"
+            :visible.sync="itemDetailVisible"
+            direction="rtl"
+            :append-to-body="true"
+            ref="itemDrawer"
+            :destroy-on-close="true"
+            :before-close="handleSubClose"
+            :size="drawerSize"
+          >
+            <div class="drawer-content">
+              <el-form :model="itemForm" style="flex: 1" size="small">
+
+                <el-form-item label="厂商" :label-width="formLabelWidth">
+                  <el-input v-model="itemForm.factoryName" :disabled="itemDetailDisabled"
+                            style="width: 80%"
+                            class="filter-item"
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="设备类型" :label-width="formLabelWidth">
+                  <el-select v-model="itemForm.deviceType" :disabled="detailDisabled" style="width: 80%"
+                             class="filter-item">
+                    <el-option
+                      v-for="item in deviceType"
+                      :key="item.index"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="产品型号" :label-width="formLabelWidth">
+                  <el-input v-model="itemForm.productModel" :disabled="detailDisabled"
+                            style="width: 80%"
+                            class="filter-item"
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="硬件版本" :label-width="formLabelWidth">
+                  <el-input v-model="itemForm.hardVersion" :disabled="detailDisabled"
+                            style="width: 80%"
+                            class="filter-item"
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="软件版本" :label-width="formLabelWidth">
+                  <el-input v-model="itemForm.softVersion" :disabled="detailDisabled"
+                            style="width: 80%"
+                            class="filter-item"
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="主设备编码" :label-width="formLabelWidth">
+                  <el-input v-model="itemForm.mainDeviceName" :disabled="detailDisabled"
+                            style="width: 80%"
+                            class="filter-item"
+                  ></el-input>
+                </el-form-item>
+
+              </el-form>
+              <div class="drawer-footer">
+                <div style="text-align: center">
+                  <el-button style="width: 40%" @click="cancelItem()" size="small" type="primary">退 出</el-button>
+                </div>
+
               </div>
-
             </div>
-          </div>
+          </el-drawer>
         </el-drawer>
       </el-drawer>
 
@@ -728,26 +811,17 @@
 
 <script>
 import Pagination from '@/components/Pagination'
-import {getOtaDetail, getFactoryList, getOtaList, getDevice} from "@/api/table";
+import {getDevice, getExDetail, getOtaDetail, getOtaList, getSubDevice} from "@/api/table";
 import {
-  createDevice,
-  massSave,
+  exportExcel,
   getFactoryNameList,
+  operateTask,
+  otaTask,
   queryProductModelList,
-  queryDeviceStatus,
-  cmdPage, otaSend, updateDevice, deleteDevice, downloadFile, exportExcel, querySoftVersion, otaTask
+  querySoftVersion
 } from "@/api/operation";
-import {
-  renderTaskStatus,
-  renderTime,
-  renderType,
-  renderOtaStatus,
-  renderProgress,
-  renderTaskOperate,
-  renderSubType
-} from '@/utils'
+import {renderOtaStatus, renderProgress, renderSendStatus, renderTaskStatus, renderTime, renderType} from '@/utils'
 import {global} from "@/common";
-import {tempDeviceType} from "@/common/global";
 
 
 export default {
@@ -761,6 +835,7 @@ export default {
       drawerSize: '50%',
       tempFactoryName: [],
       destroy: true,
+      getExcel:false,
       //list
       list: null,
       listLoading: false,
@@ -803,6 +878,7 @@ export default {
       chosenDeviceData: [], //选中的主设备
       taskProductModel: [],
       taskDeviceType: global.deviceType,
+      taskStatus:global.taskStatus,
       taskHardVersion: [],
       taskSoftVersion: [],
       taskMainProductModel: [],
@@ -851,7 +927,6 @@ export default {
       detailDisabled: true,
       canOperate: false,
       taskDetailVisible: false,
-      mainDeviceName: [],
       canOperateText: '中止',
       detailForm: {
         deviceType: '',
@@ -864,11 +939,27 @@ export default {
         mainProductModel: '',
         mainDeviceType: '',
         mainFactoryName: '',
-        mainDeviceCount: '--',
+        mainDeviceCount: 0,
+        taskStatus: '',
         time: [new Date(2000, 10, 10, 10, 10), new Date(2000, 10, 11, 10, 10)],
       },
-      //第二层
+      //ex新增table
+      exDetailVisible: false,
+      exDetailLoading: false,
+      exLoading: false,
+      exData: null,
+      exTotal: 0,
+      exQuery: {
+        current: 1,
+        size: 20,
+        mainDeviceName: undefined,
+        taskStatus: undefined,
+        taskId: undefined
+      },
+      exDeviceName: [],
+      //第3层
       detailData: null,
+      mainDeviceName: [],
       subDetailVisible: false,
       detailTotal: 0,
       detailLoading: false,
@@ -883,7 +974,7 @@ export default {
         otaStatus: undefined,
         taskId: undefined
       },
-      //第三层
+      //第4层
       itemDetailDisabled: true,
       itemDrawerTitle: '从设备详情',
       itemDetailVisible: false,
@@ -1222,6 +1313,13 @@ export default {
           message: '请先选择设备！',
           type: 'warning'
         })
+      } else if (this.selected.length > 50) {
+        this.$notify({
+          title: '警告',
+          message: '最多选择50台设备！',
+          type: 'warning',
+          duration: 2000
+        });
       } else {
         this.chosenDeviceData = []
         this.taskForm.mainDeviceNames = ''
@@ -1233,7 +1331,6 @@ export default {
           this.taskForm.mainDeviceCount++
         })
         this.taskForm.mainDeviceNames = this.taskForm.mainDeviceNames.substring(0, this.taskForm.mainDeviceNames.lastIndexOf(','));
-
         this.$message({
           showClose: true,
           message: '添加设备成功！',
@@ -1249,7 +1346,7 @@ export default {
         //删除的设备名
         this.deleteSelectedNames.push(item.deviceName)
       })
-      this.deleteSelected = selection
+      this.deleteSelected = this.chosenDeviceData.filter((item, index, arr) => !this.deleteSelectedNames.includes(item.deviceName))
     },
 
     //删除已选
@@ -1257,15 +1354,28 @@ export default {
       if (this.deleteSelected.length === 0) {
         this.$message({
           showClose: true,
-          message: '请先选择设备！',
+          message: '请先选择要删除的设备！',
           type: 'warning'
         })
       } else {
-
+        this.chosenDeviceData = []
+        this.taskForm.mainDeviceNames = ''
+        this.taskForm.mainDeviceCount = 0
+        this.chosenDeviceData = this.deleteSelected
+        this.deleteSelected.forEach((item, index) => {
+          this.taskForm.mainDeviceNames += item.deviceName + ','
+        })
+        this.taskForm.mainDeviceCount = this.chosenDeviceData.length
+        this.taskForm.mainDeviceNames = this.taskForm.mainDeviceNames.substring(0, this.taskForm.mainDeviceNames.lastIndexOf(','));
+        this.$message({
+          showClose: true,
+          message: '删除设备成功！',
+          type: 'success'
+        })
 
       }
     },
-    //本地查询已选择主设备列表
+    //删除已选择设备列表分页：
     chosenMainList() {
 
     },
@@ -1313,13 +1423,28 @@ export default {
     handleDetail(index, row) {
       this.taskDetailVisible = true
       this.detailQuery.taskId = row.taskId
+      this.exQuery.taskId = row.taskId
+      this.exDeviceName = []
+      this.mainDeviceName = []
+      let names = row.mainDeviceNames.split(",");
+      names.forEach((item, index) => {
+        this.exDeviceName.push({
+          label: item,
+          value: item
+        })
+        this.mainDeviceName.push({
+          label: item,
+          value: item
+        })
+
+      })
       this.detailForm = Object.assign({}, row)
-      switch (renderTaskStatus(this.detailForm.taskStatus)) {
-        case '3':
+      switch (this.detailForm.taskStatus) {
+        case 0 || 2:
           this.canOperate = true
           this.canOperateText = '中止'
           break
-        case '4':
+        case 1:
           this.canOperate = true
           this.canOperateText = '恢复'
           break
@@ -1327,22 +1452,94 @@ export default {
           this.canOperate = false
       }
     },
-    //第二个drawer
+    //操作任务
+    operate(){
+      let operateType = ''
+      if (this.detailForm.taskStatus === 0 || this.detailForm.taskStatus === 2){
+        operateType = '1'
+      }else if (this.detailForm.taskStatus === 1){
+        operateType = '2'
+      }
+      let query = {
+        taskId:this.detailForm.taskId,
+        operateType:operateType,
+        currentUser:JSON.parse(sessionStorage.getItem('userInfo')).userId,
+      }
+      operateTask(query).then(res => {
+        if (res.data.success){
+          this.taskDetailVisible = false
+        }
+        this.$message({
+          showClose: true,
+          message: res.data.message,
+          type: res.data.success ? 'success':'error'
+        })
+
+      })
+    },
+
+    //ex drawer
+    handleExTable() {
+      this.exDetailVisible = true
+      this.exSearch()
+    },
+    //查看ota详情
+    handleExDetail(index, row) {
+      this.subDetailVisible = true
+      this.detailLoading = true
+      this.detailQuery.mainDeviceName = row.mainDeviceName
+      this.detailSearch()
+    },
+    exSearch() {
+      this.exDetailLoading = true
+      getExDetail(this.exQuery).then(response => {
+        if (response.data.data !== null) {
+          if (response.data.data.records != null) {
+            if (response.data.data.records.length !== 0) {
+              this.exData = response.data.data.records
+              this.detailTotal = response.data.data.total
+            }
+          }
+        } else {
+          this.$message({
+            showClose: true,
+            message: '获取失败!',
+            type: 'error'
+          })
+        }
+      })
+      this.exDetailLoading = false
+    },
+    reExSearch() {
+      this.exQuery.mainDeviceName = undefined
+      this.exQuery.taskStatus = undefined
+      this.exSearch()
+    },
+    renderExStatus(row) {
+      return renderTaskStatus(row.taskStatus)
+    },
+    renderExSend(row) {
+      return renderSendStatus(row.sendStatus)
+    },
+    renderExEndTime(row) {
+      return renderTime(row.updateTime)
+    },
+    //ex drawer
     handleDetailTable() {
       this.subDetailVisible = true
       this.detailLoading = true
       this.detailSearch()
     },
-    // OTA索索第二层
+
+    // OTA索索第3层
     detailSearch() {
+      this.detailData = null
       getOtaDetail(this.detailQuery).then(response => {
         if (response.data.data !== null) {
-          if (response.data.data.records.length !== 0) {
-            this.detailData = response.data.data.records
-            this.detailTotal = response.data.data.total
+          if (response.data.data.records !== null){
+              this.detailData = response.data.data.records
           }
         } else {
-          this.detailLoading = false
           this.$message({
             showClose: true,
             message: '获取失败!',
@@ -1352,6 +1549,12 @@ export default {
       })
       this.detailLoading = false
     },
+    reDetailSearch() {
+      this.detailQuery.mainDeviceName = undefined
+      this.detailQuery.subDeviceName = undefined
+      this.detailQuery.otaStatus = undefined
+      this.detailSearch()
+    },
     handleSubClose(done) {
       done()
     },
@@ -1359,13 +1562,29 @@ export default {
       this.taskDetailVisible = false
     },
 
-
     cancelOta() {
       this.otaDialogVisible = false
     },
     //第三个drawer
-    handleItemDetail() {
+    handleItemDetail(index, row) {
+      this.itemForm = {}
       this.itemDetailVisible = true
+      this.searchSubDevice(row.subDeviceName)
+    },
+    searchSubDevice(query) {
+      getSubDevice(query).then(res => {
+        if (res.data !== null) {
+          if (res.data.data != null) {
+            this.itemForm = res.data.data
+          }
+        } else {
+          this.$message({
+            showClose: true,
+            message: '获取失败!',
+            type: 'error'
+          })
+        }
+      })
     },
     //关闭第三个drawer
     cancelItem() {
@@ -1398,10 +1617,11 @@ export default {
       return renderTime(row.updateTime)
     },
     renderOtaEndTime(row) {
-      return renderTime(row.endTime)
+      return renderTime(row.updateTime)
     },
 
 //重置搜索
+    //list表格
     reSearch() {
       this.listQuery.factoryName = undefined
       this.listQuery.deviceType = undefined
@@ -1410,15 +1630,15 @@ export default {
       this.listQuery.taskId = undefined
       this.getList()
     },
-    reDetailSearch() {
 
-    },
     //Excel
-    handleExcel() {
-      const query = {taskId: this.detailQuery.taskId}
-      exportExcel(query).then(res => {
+    handleExcel(ex) {
+      this.getExcel = true
+      let query = ''
+      ex ? query = {taskId: this.exQuery.taskId} : query = {taskId: this.detailQuery.taskId}
+      exportExcel(query,ex).then(res => {
         const blob = new Blob([res.data], {type: 'application/vnd.ms-excel;charset=utf-8'})
-        const fileName = this.fileName
+        const fileName = ex ? '子设备任务表.xlsx' : '子设备OTA表.xlsx'
         if ('download' in document.createElement('a')) { // 非IE下载
           const elink = document.createElement('a')
           elink.download = fileName
@@ -1432,6 +1652,7 @@ export default {
           navigator.msSaveBlob(blob, fileName)
         }
       })
+      this.getExcel = false
 
     },
   }

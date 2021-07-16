@@ -143,9 +143,44 @@ export const splitLength = [
   },
 ]
 /*
+*任务状态
+*     case 0:
+      return '任务开始'
+    case 1:
+      return '任务中止'
+    case 2:
+      return '任务恢复'
+    case 3:
+      return '任务删除'
+    case 4:
+      return '任务结束'
+*  */
+export const taskStatus = [
+  {
+    label: '任务开始',
+    value: 0
+  },
+  {
+    label: '任务中止',
+    value: 1
+  },
+  {
+    label: '任务恢复',
+    value: 2
+  },
+  {
+    label: '任务删除',
+    value: 3
+  },
+  {
+    label: '任务结束',
+    value: 4
+  },
+]
+/*
 OTA状态
 */
-export const otaStatus= [
+export const otaStatus = [
   {
     value: '1',
     label: 'ota指令下发中'
@@ -187,4 +222,14 @@ export const otaStatus= [
     label: 'ota超时'
   },
 ]
+/*
+*修改密码类型
+*
+* '1' ：管理员重置密码
+* '2'：用户修改密码（携带老密码）
+*  */
+export const changePasswordType = {
+  admin: '2',
+  user: '1'
+}
 

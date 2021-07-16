@@ -158,8 +158,8 @@ export default {
           this.query.password = Base64.encode(this.query.password)
           this.$store.dispatch('user/login',this.query ).then((response) => {
             if (response.data.success){
+              sessionStorage.setItem('userInfo',JSON.stringify(response.data.data.userInfo))
               this.$router.push({path: this.redirect || '/'})
-              console.log(response)
               //TODO 保存userInfo
               this.loading = false
             }else {

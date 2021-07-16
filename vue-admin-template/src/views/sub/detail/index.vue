@@ -1,6 +1,6 @@
 <template>
   <div class="navbar">
-      <el-aside style="width: 180px;height:100%;padding-top: 5px;">
+      <el-aside style="width: 180px;height:100%;">
         <el-scrollbar style="height: 100%">
           <el-menu
             style="height: 100%"
@@ -52,7 +52,6 @@ export default {
     clickItem(index) {
       this.index = index
       sessionStorage.setItem('sub_menu', index)
-      console.log('====' + index)
     }
   }
 }

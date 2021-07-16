@@ -1351,7 +1351,6 @@ export default {
       })
     },
     handleDetail(index, row) {
-      console.log(row)
       const {href} = this.$router.resolve({
         name: 'Info',
         path: '/info',

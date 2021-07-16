@@ -8,8 +8,7 @@
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
           <!--          <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">-->
-          <div class="user-avatar">账户管理</div>
-          <i class="el-icon-caret-bottom"/>
+          <div class="user-avatar">你好, <span class="helloName">{{userInfo.userName}} </span> <i class="el-icon-arrow-down"></i></div>
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <!--          <router-link to="/">-->
@@ -18,7 +17,7 @@
           <!--            </el-dropdown-item>-->
           <!--          </router-link>-->
           <el-dropdown-item divided @click.native="handlePwd()">
-            <span style="display:block;">修改密码</span>
+            <span style="display:block;">修改账户</span>
           </el-dropdown-item>
           <el-dropdown-item divided @click.native="logout">
             <span style="display:block;">登出</span>
@@ -34,17 +33,17 @@
                :label-position="labelPosition"
                label-width="100px">
         <el-form-item label="手机号" prop="mobile">
-          <el-input v-model="ruleForm.mobile" placeholder="请输入手机号"></el-input>
+          <el-input v-model="ruleForm.mobile" disabled></el-input>
         </el-form-item>
         <el-form-item label="原密码" prop="oldPassword">
-          <el-input type="password" v-model="ruleForm.oldPassword" placeholder="请输入原密码" autocomplete="off"></el-input>
+          <el-input v-model="ruleForm.oldPassword" show-password placeholder="请输入原密码" autocomplete="true"></el-input>
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
-          <el-input type="password" v-model="ruleForm.newPassword" placeholder="请输入密码" autocomplete="off"></el-input>
+          <el-input v-model="ruleForm.newPassword" placeholder="请输入密码" autocomplete="false"></el-input>
         </el-form-item>
-        <el-form-item label="确认密码" prop="checkPass">
-          <el-input type="password" v-model="ruleForm.checkPass" placeholder="请确认密码" autocomplete="off"></el-input>
-        </el-form-item>
+<!--        <el-form-item label="确认密码" prop="checkPass">-->
+<!--          <el-input v-model="ruleForm.checkPass" placeholder="请确认密码" autocomplete="true"></el-input>-->
+<!--        </el-form-item>-->
 
       </el-form>
 
@@ -64,6 +63,7 @@ import Hamburger from '@/components/Hamburger'
 import {changePassword} from "@/api/user"
 import {MessageBox} from "element-ui";
 import store from "@/store";
+import {changePasswordType} from "@/common/global";
 
 export default {
   components: {
@@ -78,7 +78,7 @@ export default {
 
   },
   data() {
-    var checkMobile = (rule, value, callback) => {
+    const checkMobile = (rule, value, callback) => {
       const phone = /^1[3456789]\d{9}$/
       if (value === '') {
         callback(new Error('手机号不能为空'));
@@ -89,7 +89,7 @@ export default {
       }
     };
 
-    var validatePass = (rule, value, callback) => {
+    const validatePass = (rule, value, callback) => {
       if (value === '') {
         callback(new Error('请输入密码'));
       } else if (this.ruleForm.checkPass !== '') {
@@ -98,7 +98,7 @@ export default {
         callback();
       }
     };
-    var validatePass2 = (rule, value, callback) => {
+    const validatePass2 = (rule, value, callback) => {
       if (value === '') {
         callback(new Error('请再次输入密码'));
       } else if (value !== this.ruleForm.newPassword) {
@@ -108,23 +108,24 @@ export default {
       }
     };
     return {
+      userInfo:JSON.parse(sessionStorage.getItem('userInfo')),
       textMap: {
-        resetPwd: '修改密码',
+        resetPwd: '修改账户',
       },
       dialogStatus: '',
       restPwdDialogVisible: false,
       labelPosition: 'right',
       rules: {
-        mobile: [{required: true, validator: checkMobile, trigger: 'blur'}],
         oldPassword: [{required: true, message: '请输入原密码', trigger: 'blur'}],
+        newPassword: [{required: true, message: '请输入新密码', trigger: 'blur'}],
         pass: [{required: true, validator: validatePass, trigger: 'blur'}],
         checkPass: [{required: true, validator: validatePass2, trigger: 'blur'}],
       },
       ruleForm: {
-        mobile: '',
         oldPassword: '',
         newPassword: '',
-        checkPass: ''
+        changeType: changePasswordType.user,
+        mobile:''
       }
     }
   },
@@ -149,6 +150,7 @@ export default {
     handlePwd() {
       this.clearPwd()
       this.dialogStatus = 'resetPwd'
+      this.ruleForm.mobile = this.userInfo.mobile
       this.restPwdDialogVisible = true
       this.$nextTick(() => {
         this.$refs['ruleForm'].clearValidate()
@@ -159,7 +161,7 @@ export default {
         if (valid) {
           const query = {
             mobile: this.ruleForm.mobile,
-            changeType: 1,
+            changeType: changePasswordType.user,
             oldPassword: this.ruleForm.oldPassword,
             newPassword: this.ruleForm.newPassword
           }
@@ -167,18 +169,25 @@ export default {
             const message = res.data.message
             if (res.data.success) {
               this.restPwdDialogVisible = false
-              this.$notify({
-                title: '成功',
-                message: message,
-                type: 'success',
-                duration: 5000
+              MessageBox.confirm(
+                '密码已修改，请重新登录',
+                '重新登录', {
+                  confirmButtonText: '确认',
+                  type: 'warning',
+                  showClose: false,
+                  showCancelButton: false,
+                  closeOnClickModal: false,
+                  closeOnPressEscape: false
+                }
+              ).then(() => {
+                this.$store.dispatch('user/logout')
+                this.$router.push(`/login?redirect=${this.$route.fullPath}`)
               })
             } else {
-              this.$notify({
-                title: '失败',
+              this.$message({
+                showClose: true,
                 message: message,
-                type: 'error',
-                duration: 5000
+                type: 'error'
               })
             }
           })
@@ -187,9 +196,7 @@ export default {
     },
     clearPwd() {
       this.ruleForm.newPassword = ''
-      this.ruleForm.mobile = ''
       this.ruleForm.oldPassword = ''
-      this.ruleForm.checkPass = ''
     }
 
   }
@@ -257,11 +264,13 @@ export default {
 
         .user-avatar {
           cursor: pointer;
-          width: 80px;
           height: 40px;
           border-radius: 10px;
         }
-
+        .helloName {
+          color: #5cb6ff;
+          font-weight: bold;
+        }
         .el-icon-caret-bottom {
           cursor: pointer;
           position: absolute;

@@ -85,7 +85,7 @@
 
 <script>
 import {getFactoryList} from "@/api/table";
-import {createFactory, deleteFactory, deleteStore, updateFactory} from "@/api/operation";
+import {createFactory, deleteFactory, updateFactory} from "@/api/operation";
 
 import Pagination from '@/components/Pagination'
 
@@ -165,9 +165,9 @@ export default {
     //新增
     handleCreate() {
       this.resetTemp();
-      this.dialogVisible = true
-      this.dialogStatus = 'create'
       this.disabled = false
+      this.dialogStatus = 'create'
+      this.dialogVisible = true
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })

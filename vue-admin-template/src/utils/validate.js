@@ -16,24 +16,23 @@ export function validUsername(str) {
 }
 /**
  * 邮箱
- * @param {*} s
  */
-export function isEmail (s) {
-  return /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((.[a-zA-Z0-9_-]{2,3}){1,2})$/.test(s)
-}
-/**
- * 手机号
- * @param {*} s
- */
-export function validPhone (s) {
-  return /^1[345789][0-9]\d{8}$/.test(s)
+export const isEmail = (rule, value, callback) => {
+  const email =  /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((.[a-zA-Z0-9_-]{2,3}){1,2})$/
+  if (!value){
+    callback(new Error('请输入邮箱'))
+  }else if (!email.test(value)){
+    callback(new Error('请输入正确的邮箱'));
+  }else {
+    callback()
+  }
 }
 
 /**
  * 手机号
  */
 export const validatePhone = (rule, value, callback) => {
-  const phone = /^1[3456789]\d{9}$/
+  const phone = /^1[23456789]\d{9}$/
   if (!value) {
     callback(new Error('请输入手机号'))
   } else if (!phone.test(value)) {

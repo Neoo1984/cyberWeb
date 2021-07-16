@@ -116,8 +116,12 @@ export function param2Obj(url) {
  * @returns {string}
  */
 export function renderTime(date) {
-  var time = new Date(date).toJSON();
-  return new Date(+new Date(time) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '')
+  if (date != null){
+    let time = new Date(date).toJSON();
+    return new Date(+new Date(time) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '')
+  }else {
+    return '--'
+  }
 }
 //设备是否在线 isOnline: 0：离线 1：上线
 export function renderIsOnline(row, column, cellValue) {
@@ -216,18 +220,28 @@ export function renderCmdType(row, column, cellValue) {
 */
 export function renderTaskStatus(taskStatus) {
   switch (taskStatus) {
+    case 0:
+      return '任务开始'
     case 1:
-      return '已创建'
+      return '任务中止'
     case 2:
-      return '创建失败'
+      return '任务恢复'
     case 3:
-      return '执行中'
+      return '任务删除'
     case 4:
-      return '已中止'
-    case 5:
-      return '已结束'
+      return '任务结束'
     default:
-      return '无数据'
+      return '--'
+  }
+}
+export function renderSendStatus(sendStatus) {
+  switch (sendStatus) {
+    case '0':
+      return '失败'
+    case '1':
+      return '成功'
+    default:
+      return '--'
   }
 }
 /*
@@ -274,6 +288,22 @@ export function renderDelete(row, column, cellValue) {
       return '已注销'
     case '0':
       return '正常'
+
+  }
+}
+/*
+用户角色
+1 注销
+0 正常
+*/
+export function renderRole(row, column, cellValue) {
+  switch (row.userRole) {
+    case '1':
+      return '超级管理员'
+    case '2':
+      return '一般管理员'
+    case '3':
+      return '用户'
 
   }
 }

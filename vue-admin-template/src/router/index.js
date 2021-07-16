@@ -166,19 +166,19 @@ export const constantRoutes = [
       meta: { title: '设备基本信息', state: '2' }
     }]
   },
-  {
-    path: '/command',
-    redirect: '/command',
-    component: SubLayout,
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/views/sub/command/index'),
-        name: 'Command',
-        meta: { title: '设备指令', state: '2' }
-      }
-    ]
-  },
+  // {
+  //   path: '/command',
+  //   redirect: '/command',
+  //   component: SubLayout,
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/views/sub/command/index'),
+  //       name: 'Command',
+  //       meta: { title: '设备指令', state: '2' }
+  //     }
+  //   ]
+  // },
   {
     path: '/maintenance',
     redirect: '/maintenance',
