@@ -26,82 +26,41 @@ service.interceptors.response.use(response => {
         sessionStorage.setItem('token', response.headers['refresh-token'])
         if (response.status === 200) {
             const data = response.data
+          if (data !== null) {
             if (data.errorCode === '200007') {
-                MessageBox.confirm(
-                    '登录过期，请重新登录',
-                    '确认登出', {
-                        confirmButtonText: '重新登录',
-                        type: 'warning',
-                        showClose: false,
-                        showCancelButton: false,
-                        closeOnClickModal: false,
-                        closeOnPressEscape: false
-                    }
-                ).then(() => {
-                    store.dispatch('user/resetToken').then(() => {
-                        location.reload()
-                    })
+              MessageBox.confirm(
+                '登录过期，请重新登录',
+                '确认登出', {
+                  confirmButtonText: '重新登录',
+                  type: 'warning',
+                  showClose: false,
+                  showCancelButton: false,
+                  closeOnClickModal: false,
+                  closeOnPressEscape: false
+                }
+              ).then(() => {
+                store.dispatch('user/resetToken').then(() => {
+                  location.reload()
                 })
-                return Promise.reject(new Error(data.message || 'Error'))
+              })
+              return Promise.reject(new Error(data.message || 'Error'))
               // TODO userType !== '1' 不让登录
 
             }
+          }else {
+            this.$message({
+              showClose: true,
+              message: '获取数据异常！',
+              type: 'error'
+            })
+          }
+
             return response
         } else {
 
         }
     }
-// response interceptor
-// service.interceptors.response.use(
-//   /**
-//    * If you want to get http information such as headers or status
-//    * Please return  response => response
-//    */
-//
-//   /**
-//    * Determine the request status by custom code
-//    * Here is just an example
-//    * You can also judge the status by HTTP Status Code
-//    */
-//   response => {
-//     const res = response.data
-//
-//     // if the custom code is not 20000, it is judged as an error.
-//     if (res.code !== 20000) {
-//       Message({
-//         message: res.message || 'Error',
-//         type: 'error',
-//         duration: 5 * 1000
-//       })
-//
-//       // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
-//       if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
-//         // to re-login
-//         MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
-//           confirmButtonText: 'Re-Login',
-//           cancelButtonText: 'Cancel',
-//           type: 'warning'
-//         }).then(() => {
-//           store.dispatch('user/resetToken').then(() => {
-//             location.reload()
-//           })
-//         })
-//       }
-//       return Promise.reject(new Error(res.message || 'Error'))
-//     } else {
-//       return res
-//     }
-//   },
-//   error => {
-//     console.log('err' + error) // for debug
-//     Message({
-//       message: error.message,
-//       type: 'error',
-//       duration: 5 * 1000
-//     })
-//     return Promise.reject(error)
-//   }
-// )
+
 
 )
 export default service

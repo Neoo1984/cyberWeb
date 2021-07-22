@@ -3,7 +3,7 @@
     <template
       v-if="hasOneShowingChild(item.children,item) && (!onlyOneChild.children||onlyOneChild.noShowingChildren)&&!item.alwaysShow "
     >
-      <app-link v-if="onlyOneChild.meta && onlyOneChild.meta.state === state " :to="resolvePath(onlyOneChild.path)">
+      <app-link v-if="onlyOneChild.meta && onlyOneChild.meta.state === state" :to="resolvePath(onlyOneChild.path)">
         <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{'submenu-title-noDropdown':!isNest}">
           <item :icon="onlyOneChild.meta.icon||(item.meta&&item.meta.icon)" :title="onlyOneChild.meta.title"/>
         </el-menu-item>
@@ -57,7 +57,7 @@ export default {
   data() {
     this.onlyOneChild = null
     return {
-      state:'1'
+      state:'1',
     }
   },
   created() {

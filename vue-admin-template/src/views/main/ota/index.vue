@@ -112,14 +112,14 @@
       </el-table-column>
       <el-table-column label="创建者" align="center" width="150">
         <template slot-scope="scope">
-          {{ scope.row.createUser }}
+          {{ scope.row.createUserName || '--' }}
         </template>
       </el-table-column>
       <el-table-column label="更新时间" align="center" width="150" :formatter="renderUpdateTime">
       </el-table-column>
       <el-table-column label="更新者" align="center" width="150">
         <template slot-scope="scope">
-          {{ scope.row.updateUser }}
+          {{ scope.row.updateUserName || '--' }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="操作" fixed="right" width="80">

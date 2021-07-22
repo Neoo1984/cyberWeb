@@ -6,43 +6,29 @@
       <el-form-item label="数据采集时间">
         <el-input style="width: 300px"
                   class="filter-item"
+                  v-model="dataTime"
                   disabled
         ></el-input>
       </el-form-item>
 
-      <el-button type="primary" @click="handleRefresh" icon="el-icon-refresh" size="small">刷新</el-button>
+      <el-button type="primary" @click="handleRefresh" :loading="refreshLoading" icon="el-icon-refresh" size="small">
+        刷新
+      </el-button>
     </el-form>
 
     <div class="box-main">
 
-      <el-tooltip class="item" effect="dark" content="查看换电柜基本信息" placement="left-start">
-        <div @click="drawer = true" class="right">
-          <i class="el-icon-d-arrow-left arrow"></i>
-        </div>
-      </el-tooltip>
-
       <div class="box-content">
-        <div v-for="item in list" class="box-item" :style="`width:${itemWidth}%;`">
-            <span class="box-num">
-              {{ item }}
-            </span>
+        <div v-for="(item,index) in cpData" :key="index" class="box-item" :style="`width:${itemWidth}%;`">
+
+          <el-checkbox :label="index+1" :key="index" class="check-list"></el-checkbox>
+          <div class="info">
+            <span class="info-item" v-for="(item,index) in warnings[index]">{{item}}</span>
+          </div>
+
         </div>
 
       </div>
-
-      <el-drawer
-        title="换电柜基本信息"
-        :visible.sync="drawer"
-        :direction="direction"
-        :before-close="handleClose"
-      >
-        <comm :device-type="deviceType"
-              :device-code="deviceCode"
-              :factory-name="factoryName"
-              :product-num="productNum"
-              :hw-version="hwVersion"
-        ></comm>
-      </el-drawer>
 
     </div>
   </div>
@@ -50,44 +36,141 @@
 
 <script>
 
-import Comm from '@/views/sub/comm'
+
+import {commandResult, deviceData, getWarning, refreshDevice} from "@/api/operation";
+import {renderTime} from "@/utils";
 
 export default {
   name: 'Warning',
-  components: {Comm},
   data() {
     return {
-      deviceType: '换电柜荣天',
-      deviceCode: '0000000000011138',
-      factoryName: '荣天',
-      productNum: '00',
-      hwVersion: 'v0.0.1',
-      list: [1, 2, 3, 4, 5, 6, 7, 8],
-      drawer: false,
-      direction: 'rtl',
-      itemWidth: 0,
-      formInline: {}
+      itemWidth: 100,
+      deviceInfo: JSON.parse(sessionStorage.getItem('infoQuery')),
+      dataTime: '',
+      //格口数据
+      cpData: undefined,
+      infoSoc: [],
+      warnings:[],
+      //柜子
+      refreshLoading: false,
     }
   },
   created() {
-    this.itemWidth = 100 / (Math.ceil(this.list.length / 4))
-
+    this.getList()
   },
   methods: {
-    handleClose(done) {
-      done()
-    },
-    handleRefresh() {
+
+    async getList() {
+      const loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      let res = await deviceData(this.deviceInfo.deviceName)
+      let warningRes = await getWarning(this.deviceInfo.deviceName)
+        if (res.data.success && res.data.data !== null) {
+          this.dataTime = renderTime(res.data.data.dataTime)
+
+          //电池
+          this.cpData = Object.values(res.data.data.cpAndBatteryData)
+          this.itemWidth = 100 / (Math.ceil(this.cpData.length / 4))
+
+          //warning
+          if (warningRes.data.success){
+              let data = warningRes.data.data
+              if (data.subDeviceWarningData !== {}){
+                this.warnings = data.subDeviceWarningData
+              }
+            console.log(this.warnings)
+            loading.close();
+          }
+        } else {
+          loading.close();
+          this.$message({
+            showClose: true,
+            message: '获取失败: ' + res.data.message,
+            type: 'error'
+          })
+        }
 
     },
-    handleOta() {
 
-    }
+    async handleRefresh() {
+      let that = this
+      that.refreshLoading = true
+      let messageId = ''
+      let i = 0
+      let interval = null
+      let cmdRes = null
+      let idRes = await refreshDevice(this.deviceInfo.deviceName)
+      if (idRes.data !== null) {
+        if (idRes.data.success) {
+          messageId = idRes.data.data.messageId
+
+          interval = setInterval(function () {
+            console.log(i)
+            if (i === 4) {
+              that.refreshLoading = false
+              clearInterval(interval)
+              that.$message({
+                showClose: true,
+                message: '刷新失败：' + cmdRes,
+                type: 'error'
+              })
+            } else {
+              commandResult(messageId).then(res => {
+                if (res.data.data !== null) {
+                  if (res.data.data.cmdStatus === '2') {
+                    console.log(res.data.data.cmdStatus)
+                    that.refreshLoading = false
+                    clearInterval(interval)
+                    that.getList()
+                    that.$message({
+                      showClose: true,
+                      message: '刷新成功！',
+                      type: 'success'
+                    })
+                  } else {
+                    cmdRes = res.data.message
+                    i++
+                  }
+                } else {
+                  i++
+                }
+              })
+            }
+
+          }, 3000)
+
+        } else {
+          this.refreshLoading = false
+          this.$message({
+            showClose: true,
+            message: '刷新失败：' + idRes.data.message,
+            type: 'error'
+          })
+        }
+      }
+    },
+
   }
 
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.info {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  .info-item {
+    font-size: 14px;
+    padding: 10px;
+  }
+  .info-text {
 
+    color: #1482f0;
+  }
+}
 </style>

@@ -43,13 +43,13 @@
       <el-table-column label="状态" align="center" :formatter="renderDelete"></el-table-column>
       <el-table-column label="创建人" align="center">
         <template slot-scope="scope">
-          {{ scope.row.createUser }}
+          {{ scope.row.createUserName || '--' }}
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center" :formatter="renderCreateTime"></el-table-column>
       <el-table-column label="更新人" align="center">
         <template slot-scope="scope">
-          {{ scope.row.updateUser }}
+          {{ scope.row.updateUserName || '--' }}
         </template>
       </el-table-column>
       <el-table-column label="更新时间" align="center" :formatter="renderUpdateTime"></el-table-column>

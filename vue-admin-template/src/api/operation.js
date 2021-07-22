@@ -252,8 +252,21 @@ export function refreshDevice(deviceName) {
     params:{deviceName:deviceName}
   })
 }
-
-
-
+//设备指令查询
+export function commandResult(id) {
+  return request({
+    url: `command/queryCommandResult`,
+    method: 'get',
+    params:{messageId:id}
+  })
+}
+//告警 查询 device/queryEventInfo
+export function getWarning(deviceName) {
+  return request({
+    url: `device/queryEventInfo`,
+    method: 'get',
+    params:{deviceName:deviceName}
+  })
+}
 
 

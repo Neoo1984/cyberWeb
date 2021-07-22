@@ -85,14 +85,15 @@
         <el-button type="primary" @click="handleMainCreate" icon="el-icon-plus" size="small">新建主设备</el-button>
         <el-button type="primary" @click="handleSlaveCreate" icon="el-icon-plus" size="small">新建从设备</el-button>
         <el-button type="primary" @click="handleUploadMain" icon="el-icon-document-add" size="small">批量导入</el-button>
-        <el-button type="primary" @click="handleOta" icon="el-icon-thumb" size="small">批量OTA</el-button>
-        <el-button type="primary" @click="handleOtaCreate" icon="el-icon-thumb" size="small">新建OTA任务</el-button>
+        <el-tooltip class="item" effect="dark" content="请选择相同设备类型，厂家，硬件和产品型号的主设备！" placement="bottom-start">
+          <el-button type="primary" @click="handleOta" icon="el-icon-thumb" size="small">批量OTA</el-button>
+        </el-tooltip>
+<!--        <el-button type="primary" @click="handleOtaCreate" icon="el-icon-thumb" size="small">新建OTA任务</el-button>-->
       </el-form>
     </div>
     <el-table
       ref="multipleTable"
       @select="selectOta"
-      @select-all="selectAllOta"
       v-loading="listLoading"
       :data="list"
       element-loading-text="加载中..."
@@ -102,45 +103,46 @@
     >
       <el-table-column
         type="selection"
-        width="55"
+        width="40"
       >
       </el-table-column>
       <el-table-column type="index" align="center" label="序号" width="50" fixed="left"></el-table-column>
 
-      <el-table-column label="设备编号" align="center" width="150" fixed="left">
+      <el-table-column label="设备编号" :sortable="true" align="center" fixed="left">
         <template slot-scope="scope">
           <span>{{ scope.row.deviceName }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="设备类型" align="center" width="150" :formatter="renderType">
+      <el-table-column label="设备类型"
+                       align="center" :formatter="renderType" prop="deviceType">
       </el-table-column>
-      <el-table-column label="厂商名称" align="center" width="150">
+      <el-table-column label="厂商名称" align="center" prop="factory">
         <template slot-scope="scope">
           {{ scope.row.factoryName }}
         </template>
       </el-table-column>
-      <el-table-column label="产品型号" align="center" width="150">
+      <el-table-column label="产品型号" align="center">
         <template slot-scope="scope">
           {{ scope.row.productModel }}
         </template>
       </el-table-column>
 
-      <el-table-column label="硬件版本" align="center" width="150">
+      <el-table-column label="硬件版本" align="center">
         <template slot-scope="scope">
-          {{ scope.row.hardVersion }}
+          {{ scope.row.hardVersion || '--' }}
         </template>
       </el-table-column>
-      <el-table-column label="软件版本" align="center" width="150">
+      <el-table-column label="软件版本" align="center">
         <template slot-scope="scope">
-          {{ scope.row.softVersion }}
+          {{ scope.row.softVersion || '--' }}
         </template>
       </el-table-column>
-      <el-table-column label="主设备" align="center" width="150">
+      <el-table-column label="主设备" align="center">
         <template slot-scope="scope">
-          {{ scope.row.mainDeviceName }}
+          {{ scope.row.mainDeviceName || '--' }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="操作" fixed="right" width="150">
+      <el-table-column align="center" label="操作" fixed="right">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -153,7 +155,7 @@
             type="text"
             @click="handleDetail(scope.$index, scope.row)"
             v-if="scope.row.deviceType === '2'"
-          >详情
+          >子设备
           </el-button>
           <!--          <el-button
                       size="mini"
@@ -277,7 +279,8 @@
                label-width="100px"
       >
         <el-form-item label="厂商名称" prop="factoryName">
-          <el-select v-model="mainTemp.factoryName" @focus="getFactoryName" @change="getFormProduct" placeholder="请选择厂商名称" style="width: 80%" class="filter-item">
+          <el-select v-model="mainTemp.factoryName" @focus="getFactoryName" @change="getFormProduct"
+                     placeholder="请选择厂商名称" style="width: 80%" class="filter-item">
             <el-option
               v-for="item in tempFactoryName"
               :key="item.index"
@@ -288,7 +291,8 @@
           </el-select>
         </el-form-item>
         <el-form-item label="设备类型" prop="deviceType">
-          <el-select v-model="mainTemp.deviceType" @change="getFormProduct" placeholder="请选择设备类型" style="width: 80%" class="filter-item">
+          <el-select v-model="mainTemp.deviceType" @change="getFormProduct" placeholder="请选择设备类型" style="width: 80%"
+                     class="filter-item">
             <el-option
               v-for="item in deviceType"
               :key="item.index"
@@ -305,7 +309,8 @@
         </el-form-item>
 
         <el-form-item label="产品型号" prop="productModel" v-if="mainTemp.factoryName &&  mainTemp.deviceType">
-          <el-select v-model="mainTemp.productModel" @focus="getFormProduct" @change="getFormHard" placeholder="请选择产品型号" style="width: 80%" class="filter-item">
+          <el-select v-model="mainTemp.productModel" @focus="getFormProduct" @change="getFormHard" placeholder="请选择产品型号"
+                     style="width: 80%" class="filter-item">
             <el-option
               v-for="item in tempProductModel"
               :key="item.index"
@@ -344,8 +349,6 @@
             v-loading="uploadLoading"
             element-loading-text="上传中..."
             action=""
-            :before-upload="handleBefore"
-            :on-change="handleChange"
             :on-success="handleSuccess"
             :http-request="getFile"
             :limit=1
@@ -428,6 +431,15 @@
                :label-position="labelPosition"
                label-width="100px"
       >
+        <el-form-item label="厂商">
+          <el-input style="width: 80%" v-model="otaTemp.factoryName" disabled />
+        </el-form-item>
+        <el-form-item label="硬件版本">
+          <el-input style="width: 80%" v-model="otaTemp.hardVersion" disabled />
+        </el-form-item>
+        <el-form-item label="产品型号">
+          <el-input style="width: 80%" v-model="otaTemp.productModel" disabled />
+        </el-form-item>
         <el-form-item label="软件版本" prop="packageId">
           <el-select v-model="otaTemp.packageId" placeholder="请选择软件版本" style="width: 80%" class="filter-item">
             <el-option
@@ -440,7 +452,7 @@
           </el-select>
 
         </el-form-item>
-        <el-form-item>
+        <el-form-item label="升级方式">
           <el-select v-model="otaTemp.updateType" placeholder="请选择升级方式" style="width: 80%" class="filter-item">
             <el-option
               v-for="item in updateType"
@@ -462,14 +474,14 @@
           <el-table
             :data="otaResultList"
             v-if="lookOtaTable"
-            style="width: 100%"
+            style="width: 80%"
           >
-            <el-table-column label="设备编号" align="center" width="150">
+            <el-table-column label="设备编号" align="center" >
               <template slot-scope="scope">
                 {{ scope.row.deviceName }}
               </template>
             </el-table-column>
-            <el-table-column label="OTA结果" align="center" width="150">
+            <el-table-column label="OTA结果" align="center" >
               <template slot-scope="scope">
                 {{ scope.row.result }}
               </template>
@@ -493,9 +505,14 @@ import Pagination from '@/components/Pagination'
 import {getDevice} from '@/api/table'
 import {
   createDevice,
-  massSave,
+  deleteDevice,
+  downloadFile,
   getFactoryNameList,
-  queryProductModelList, querySoftVersion, otaSend, updateDevice, deleteDevice, downloadFile
+  massSave,
+  otaSend,
+  queryProductModelList,
+  querySoftVersion,
+  updateDevice
 } from '@/api/operation'
 import {renderCmdResult, renderCmdStatus, renderCmdType, renderType} from '@/utils'
 import {global} from "@/common";
@@ -527,6 +544,7 @@ export default {
       listDeviceType: global.tempDeviceType,
       deviceType: global.deviceType,
       isOnline: global.isOnline,
+      factoryNameFilter:[],
       dialogStatus: '',
       listQuery: {
         current: 1,
@@ -547,7 +565,13 @@ export default {
       otaTemp: {
         deviceNames: [],
         packageId: undefined,
-        updateType: 0
+        updateType: 0,
+        factoryName:'',
+        hardVersion:'',
+        productModel:'',
+        factoryNames:[],
+        hardVersions:[],
+        productModels:[]
       },
       updateType: global.updateType,
       renderCmdResult: renderCmdResult,
@@ -609,7 +633,7 @@ export default {
         productModel: undefined,
         hardVersion: undefined,
         softVersion: undefined,
-        manufactoryCode:'',
+        manufactoryCode: '',
         excelFile: undefined
       },
       rules: {
@@ -849,6 +873,13 @@ export default {
         }
       })
       this.listLoading = false
+    },
+//过滤表格
+    filterHandler(value, row, column) {
+      console.log(value)
+      const property = column['property'];
+      return row[property] === value;
+      // getFactoryNameList().then(res => {
     },
 
 //获取产品型号productModel 和硬件版本
@@ -1228,42 +1259,67 @@ export default {
         })
       }
     },
-    handleBefore(file) {
-    },
-    handleChange(file, fileList) {
-      console.log(fileList)
-    },
+
     handleSuccess() {
       this.$refs.upload.clearValidate()
     },
 
 //OTA
     selectOta(selection, row) {
+      this.otaTemp.productModels = []
+      this.otaTemp.factoryNames = []
+      this.otaTemp.hardVersions = []
+      console.log(selection)
       selection.forEach((item, index) => {
         this.otaTemp.deviceNames.push(item.deviceName)
-      })
-    },
-    selectAllOta(selection) {
-      selection.forEach((item, index) => {
-        this.otaTemp.deviceNames.push(item.deviceName)
+        this.otaTemp.factoryNames.push(item.factoryName)
+        this.otaTemp.hardVersions.push(item.hardVersion)
+        this.otaTemp.productModels.push(item.productModel)
       })
     },
     handleOta() {
       if (this.otaTemp.deviceNames.length === 0) {
-        this.$alert('请选择需要OTA的设备', '提示', {
-          confirmButtonText: '确定',
-          type: 'warning'
-        })
-      } else {
+        this.$notify({
+          title: '警告',
+          message: '请选择需要OTA的设备！',
+          type: 'warning',
+          duration: 2000
+        });
+      }else if (!this.otaTemp.factoryNames.every((item,index,arr) => item === this.otaTemp.factoryNames[0])){
+        this.$notify({
+          title: '警告',
+          message: '批量OTA需要选择相同的厂商！',
+          type: 'warning',
+          duration: 2000
+        });
+      }else if (!this.otaTemp.hardVersions.every((item,index,arr) => item === this.otaTemp.hardVersions[0])){
+        this.$notify({
+          title: '警告',
+          message: '批量OTA需要选择相同的硬件版本！',
+          type: 'warning',
+          duration: 2000
+        });
+      }else if (!this.otaTemp.productModels.every((item,index,arr) => item === this.otaTemp.productModels[0])){
+        this.$notify({
+          title: '警告',
+          message: '批量OTA需要选择相同的产品型号！',
+          type: 'warning',
+          duration: 2000
+        });
+      }
+      else {
+        this.otaTemp.factoryName = this.otaTemp.factoryNames[0]
+        this.otaTemp.productModel = this.otaTemp.productModels[0]
+        this.otaTemp.hardVersion = this.otaTemp.hardVersions[0]
         this.btnCancelText = '取消'
         this.showResult = true
         this.otaResultList = null
         this.dialogStatus = 'ota'
         this.otaDialogVisible = true
         const query = {
-          factoryName: this.listQuery.factoryName,
-          hardVersion: this.listQuery.hardVersion,
-          productModel: this.listQuery.productModel
+          factoryName: this.otaTemp.factoryName,
+          hardVersion: this.otaTemp.hardVersion,
+          productModel: this.otaTemp.productModel
         }
         this.softVersion = []
         querySoftVersion(query).then(res => {
@@ -1291,7 +1347,12 @@ export default {
     ota() {
       this.$refs['otaRef'].validate((valid) => {
         if (valid) {
-          otaSend(this.otaTemp).then(res => {
+          let query = {
+            deviceNames:this.otaTemp.deviceNames,
+            packageId:this.otaTemp.packageId,
+            updateType:this.otaTemp.updateType,
+          }
+          otaSend(query).then(res => {
             if (res.data.success) {
               this.btnCancelText = '确认'
               this.showResult = false
@@ -1363,7 +1424,7 @@ export default {
         }
       })
       window.open(href, '_blank')
-    }
+    },
   }
 }
 </script>
